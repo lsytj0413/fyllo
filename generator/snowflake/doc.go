@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+// Package snowflake contains all random generator component
+package snowflake
 
-import (
-	"github.com/lsytj0413/fyllo/fyllomain"
-)
-
-func main() {
-	fyllomain.Main()
+// PackageName for import unused
+func PackageName() string {
+	return "snowflake"
 }

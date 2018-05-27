@@ -12,12 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package random
 
 import (
-	"github.com/lsytj0413/fyllo/fyllomain"
+	"context"
+
+	"github.com/lsytj0413/fyllo/conf"
 )
 
-func main() {
-	fyllomain.Main()
+type uuidGenerator struct {
+}
+
+func (g *uuidGenerator) Next(c context.Context) (*conf.RandomResult, error) {
+	return nil, nil
 }

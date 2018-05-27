@@ -12,12 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package segment
 
 import (
-	"github.com/lsytj0413/fyllo/fyllomain"
+	"github.com/lsytj0413/fyllo/conf"
+	"github.com/lsytj0413/fyllo/factory"
 )
 
-func main() {
-	fyllomain.Main()
+type segmentFactory struct {
+}
+
+func (f *segmentFactory) Name() string {
+	return "UUIDRandomFactory"
+}
+
+func (f *segmentFactory) New(segmentConfig conf.GeneratorConfig) (conf.SegmentGenerator, error) {
+	return &generator{}, nil
+}
+
+func init() {
+	f := &segmentFactory{}
+	err := factory.AppendFactory(f)
+	if err != nil {
+		panic(err)
+	}
 }

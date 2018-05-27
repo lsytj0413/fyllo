@@ -12,12 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package random
 
 import (
-	"github.com/lsytj0413/fyllo/fyllomain"
+	"github.com/lsytj0413/fyllo/conf"
+	"github.com/lsytj0413/fyllo/factory"
 )
 
-func main() {
-	fyllomain.Main()
+type uuidFactory struct {
+}
+
+func (f *uuidFactory) Name() string {
+	return "UUIDRandomFactory"
+}
+
+func (f *uuidFactory) New(randomConfig conf.GeneratorConfig) (conf.RandomGenerator, error) {
+	return &uuidGenerator{}, nil
+}
+
+func init() {
+	f := &uuidFactory{}
+	err := factory.AppendFactory(f)
+	if err != nil {
+		panic(err)
+	}
 }

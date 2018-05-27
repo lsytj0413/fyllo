@@ -12,12 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+// Package generator contains all generator component
+package generator
 
 import (
-	"github.com/lsytj0413/fyllo/fyllomain"
+	"github.com/lsytj0413/fyllo/generator/random"
+	"github.com/lsytj0413/fyllo/generator/segment"
+	"github.com/lsytj0413/fyllo/generator/snowflake"
 )
 
-func main() {
-	fyllomain.Main()
-}
+var _ = random.PackageName
+var _ = segment.PackageName
+var _ = snowflake.PackageName

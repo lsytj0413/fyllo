@@ -12,12 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package segment
 
 import (
-	"github.com/lsytj0413/fyllo/fyllomain"
+	"context"
+
+	"github.com/lsytj0413/fyllo/conf"
 )
 
-func main() {
-	fyllomain.Main()
+type generator struct {
+}
+
+func (g *generator) Next(c context.Context, tag string) (*conf.SegmentResult, error) {
+	return nil, nil
 }

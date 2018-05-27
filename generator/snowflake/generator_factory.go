@@ -12,12 +12,28 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
+package snowflake
 
 import (
-	"github.com/lsytj0413/fyllo/fyllomain"
+	"github.com/lsytj0413/fyllo/conf"
+	"github.com/lsytj0413/fyllo/factory"
 )
 
-func main() {
-	fyllomain.Main()
+type snowflakeFactory struct {
+}
+
+func (f *snowflakeFactory) Name() string {
+	return "UUIDRandomFactory"
+}
+
+func (f *snowflakeFactory) New(snowflakeConfig conf.GeneratorConfig) (conf.SnowflakeGenerator, error) {
+	return &generator{}, nil
+}
+
+func init() {
+	f := &snowflakeFactory{}
+	err := factory.AppendFactory(f)
+	if err != nil {
+		panic(err)
+	}
 }

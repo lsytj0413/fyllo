@@ -13,3 +13,10 @@
 // limitations under the License.
 
 package fyllomain
+
+import "fmt"
+
+// Main is entrance for follymain application
+func Main() {
+	fmt.Println("fyllomain.Main")
+}

@@ -12,12 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package main
-
-import (
-	"github.com/lsytj0413/fyllo/fyllomain"
-)
-
-func main() {
-	fyllomain.Main()
-}
+// Package conf provide application config object
+package conf
