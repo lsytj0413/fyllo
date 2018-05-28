@@ -21,8 +21,7 @@ import "fmt"
 type serial uint64
 
 const (
-	// MaxSerialNumber @var
-	// @brief 最大可用序列号
+	// MaxSerialNumber is the max avaliable sequence number
 	MaxSerialNumber serial = (1 << 10) - 1
 )
 

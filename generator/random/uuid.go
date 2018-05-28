@@ -37,3 +37,15 @@ func (g *uuidGenerator) Next(c context.Context) (*conf.RandomResult, error) {
 	r.Next = h.Sum64()
 	return r, nil
 }
+
+func init() {
+	createFn := func(config conf.GeneratorConfig) (Generator, error) {
+		if config.Plugin != "UUID" {
+			return nil, errNotImplement
+		}
+
+		return &uuidGenerator{}, nil
+	}
+
+	f.register(createFn)
+}
