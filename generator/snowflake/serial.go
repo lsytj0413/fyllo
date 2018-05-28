@@ -12,28 +12,33 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package random
+package snowflake
 
-import (
-	"context"
-	"hash/fnv"
+import "fmt"
 
-	"github.com/lsytj0413/fyllo/conf"
-	uuid "github.com/satori/go.uuid"
+// @struct serial
+// @brief 序列号产生器
+type serial uint64
+
+const (
+	// MaxSerialNumber @var
+	// @brief 最大可用序列号
+	MaxSerialNumber serial = (1 << 10) - 1
 )
 
-type uuidGenerator struct {
+// get the next serial at this microsecond
+func (p *serial) next() (uint64, error) {
+	if *p >= MaxSerialNumber {
+		panic(fmt.Errorf("out of serial"))
+	}
+
+	sNumber := *p
+	*p++
+
+	return uint64(sNumber), nil
 }
 
-func (g *uuidGenerator) Next(c context.Context) (*conf.RandomResult, error) {
-	r := &conf.RandomResult{}
-	r.Identify = uuid.NewV4().String()
-
-	h := fnv.New64a()
-	_, err := h.Write([]byte(r.Identify))
-	if err != nil {
-		return nil, err
-	}
-	r.Next = h.Sum64()
-	return r, nil
+// reset serial, at every microsecond should reset serail first
+func (p *serial) reset() {
+	*p = 0
 }

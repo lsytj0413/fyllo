@@ -12,28 +12,38 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package random
+package snowflake
 
 import (
-	"context"
-	"hash/fnv"
-
-	"github.com/lsytj0413/fyllo/conf"
-	uuid "github.com/satori/go.uuid"
+	"time"
 )
 
-type uuidGenerator struct {
+const (
+	// Nano2MicroRatio is the ratio convert nanoseconds to microseconds
+	Nano2MicroRatio = 1000000
+)
+
+type timeTuner interface {
+	currMicroSeconds() uint64
+	waitForNextMS(uint64) uint64
 }
 
-func (g *uuidGenerator) Next(c context.Context) (*conf.RandomResult, error) {
-	r := &conf.RandomResult{}
-	r.Identify = uuid.NewV4().String()
+type systemTimeTuner struct {
+}
 
-	h := fnv.New64a()
-	_, err := h.Write([]byte(r.Identify))
-	if err != nil {
-		return nil, err
+func (m *systemTimeTuner) currMicroSeconds() uint64 {
+	return uint64(time.Now().UnixNano()) / Nano2MicroRatio
+}
+
+func (m *systemTimeTuner) waitForNextMS(timestamp uint64) uint64 {
+	for {
+		now := m.currMicroSeconds()
+		if now > timestamp {
+			return now
+		}
 	}
-	r.Next = h.Sum64()
-	return r, nil
 }
+
+var (
+	t timeTuner = &systemTimeTuner{}
+)

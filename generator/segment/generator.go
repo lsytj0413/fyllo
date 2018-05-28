@@ -21,8 +21,18 @@ import (
 )
 
 type generator struct {
+	ch <-chan uint64
 }
 
 func (g *generator) Next(c context.Context, tag string) (*conf.SegmentResult, error) {
-	return nil, nil
+	r := &conf.SegmentResult{
+		Tag: tag,
+	}
+	select {
+	case id := <-g.ch:
+		r.Next = id
+		return r, nil
+	case <-c.Done():
+		return nil, c.Err()
+	}
 }

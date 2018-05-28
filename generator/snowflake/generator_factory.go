@@ -27,7 +27,7 @@ func (f *snowflakeFactory) Name() string {
 }
 
 func (f *snowflakeFactory) New(snowflakeConfig conf.GeneratorConfig) (conf.SnowflakeGenerator, error) {
-	return &generator{}, nil
+	return &generatorMapper{}, nil
 }
 
 func init() {

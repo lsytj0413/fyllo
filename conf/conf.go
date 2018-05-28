@@ -49,7 +49,7 @@ type GeneratorConfig struct {
 // RandomResult for RandomGenerator Next
 type RandomResult struct {
 	Identify string `json:"identify"`
-	Next     string `json:"next"`
+	Next     uint64 `json:"next"`
 }
 
 // RandomGenerator is defines for random
