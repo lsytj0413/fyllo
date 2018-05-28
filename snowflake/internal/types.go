@@ -47,3 +47,8 @@ const (
 	// SerialIDMask is the mask of sequence field
 	SerialIDMask uint64 = 0x00000000000003FF
 )
+
+const (
+	// MaxSequenceValue is max value of sequence
+	MaxSequenceValue uint64 = (1 << 10)
+)

@@ -23,10 +23,10 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-type uuidGenerator struct {
+type uuidPlugin struct {
 }
 
-func (g *uuidGenerator) Next(c context.Context) (*conf.RandomResult, error) {
+func (g *uuidPlugin) Next(c context.Context) (*conf.RandomResult, error) {
 	r := &conf.RandomResult{}
 	r.Identify = uuid.NewV4().String()
 
@@ -42,10 +42,10 @@ func (g *uuidGenerator) Next(c context.Context) (*conf.RandomResult, error) {
 func init() {
 	createFn := func(config conf.GeneratorConfig) (Generator, error) {
 		if config.Plugin != "UUID" {
-			return nil, ierror.NewPluginNotImplement("uuidGenerator only for UUID plugin")
+			return nil, ierror.NewPluginNotImplement("uuidPlugin only for UUID plugin")
 		}
 
-		return &uuidGenerator{}, nil
+		return &uuidPlugin{}, nil
 	}
 
 	f.register(createFn)

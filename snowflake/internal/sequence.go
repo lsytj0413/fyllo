@@ -33,7 +33,8 @@ type defSequence struct {
 
 func (s *defSequence) next() (uint64, error) {
 	if s.now >= s.max {
-		return 0, ierror.NewError(ierror.EcodeSequenceOutOfRange, fmt.Sprintf("sequence should in range of [0, %d)", s.max))
+		return 0, ierror.NewError(ierror.EcodeSequenceOutOfRange,
+			fmt.Sprintf("sequence should in range of [0, %d)", s.max))
 	}
 
 	tmp := s.now
@@ -47,4 +48,11 @@ func (s *defSequence) reset() {
 
 func (s *defSequence) isOutRange() bool {
 	return s.now >= s.max
+}
+
+func newSequence(max uint64) sequence {
+	return &defSequence{
+		max: max,
+		now: 0,
+	}
 }

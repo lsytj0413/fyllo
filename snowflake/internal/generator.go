@@ -69,6 +69,10 @@ func (sf *sfGenerator) getGeneratorByTag(tag uint64) Generator {
 	g = &tagGenerator{
 		tag:     tag,
 		machine: sf.machine,
+		t:       &systemTimeTuner{},
+		s: &defSequence{
+			max: MaxSequenceValue,
+		},
 	}
 	sf.mappers[tag] = g
 	return g
