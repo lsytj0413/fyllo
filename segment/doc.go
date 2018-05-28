@@ -12,10 +12,5 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package snowflake contains all random generator component
-package snowflake
-
-// PackageName for import unused
-func PackageName() string {
-	return "snowflake"
-}
+// Package segment contains all random generator component
+package segment

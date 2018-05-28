@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package random
+package snowflake
 
 import (
 	"context"
@@ -35,7 +35,7 @@ type factory interface {
 
 // Generator is interface for random generator
 type Generator interface {
-	Next(context.Context) (*conf.RandomResult, error)
+	Next(context.Context, uint64) (*conf.SnowflakeResult, error)
 }
 
 type defFactory struct {

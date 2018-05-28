@@ -14,8 +14,3 @@
 
 // Package random contains all random generator component
 package random
-
-// PackageName for import unused
-func PackageName() string {
-	return "random"
-}

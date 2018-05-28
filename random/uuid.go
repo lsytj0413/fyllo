@@ -19,6 +19,7 @@ import (
 	"hash/fnv"
 
 	"github.com/lsytj0413/fyllo/conf"
+	ierror "github.com/lsytj0413/fyllo/error"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -41,7 +42,7 @@ func (g *uuidGenerator) Next(c context.Context) (*conf.RandomResult, error) {
 func init() {
 	createFn := func(config conf.GeneratorConfig) (Generator, error) {
 		if config.Plugin != "UUID" {
-			return nil, errNotImplement
+			return nil, ierror.NewPluginNotImplement("uuidGenerator only for UUID plugin")
 		}
 
 		return &uuidGenerator{}, nil

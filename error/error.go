@@ -26,23 +26,44 @@ const (
 	EcodeRequestParam = 10000001
 	// EcodeInitFailed errors for system init error
 	EcodeInitFailed = 30000001
+	// EcodeNotImplement errors for system not implement
+	EcodeNotImplement = 40000001
+	// EcodePluginNotImplement erross for factory doesn't support plugin
+	EcodePluginNotImplement = 40000002
+
 	// EcodeUnknown errors for unexpected server error
 	EcodeUnknown = 99999999
 )
 
 var errorsMessage = map[int]string{
-	EcodeRequestParam: "Request Param Error",
-	EcodeInitFailed:   "Server Startup Failed",
-	EcodeUnknown:      "Server Unknown Error",
+	EcodeRequestParam:       "Request Param Error",
+	EcodeInitFailed:         "Server Startup Failed",
+	EcodeUnknown:            "Server Unknown Error",
+	EcodeNotImplement:       "Not Implement",
+	EcodePluginNotImplement: "Plugin Not Implement",
 }
 
 var errorsStatus = map[int]int{
 	EcodeUnknown: http.StatusInternalServerError,
 }
 
-// NewError const struct a cerror.Error and return it
+// NewError construct a cerror.Error and return it
 func NewError(errorCode int, cause string) *cerror.Error {
 	return cerror.NewError(errorCode, cause)
+}
+
+// IsPluginNotImplement checks the error is EcodePluginNotImplement
+func IsPluginNotImplement(err error) bool {
+	if ce, ok := err.(*cerror.Error); ok {
+		return ce.ErrorCode == EcodePluginNotImplement
+	}
+
+	return false
+}
+
+// NewPluginNotImplement construct a PluginNotImplementError
+func NewPluginNotImplement(cause string) *cerror.Error {
+	return NewError(EcodePluginNotImplement, cause)
 }
 
 func init() {
