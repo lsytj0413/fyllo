@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package snowflake
+package internal
 
 import (
 	"time"
@@ -43,7 +43,3 @@ func (m *systemTimeTuner) waitForNextMS(timestamp uint64) uint64 {
 		}
 	}
 }
-
-var (
-	t timeTuner = &systemTimeTuner{}
-)

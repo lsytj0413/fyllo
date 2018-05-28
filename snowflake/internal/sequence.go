@@ -12,32 +12,39 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package snowflake
+package internal
 
-import "fmt"
+import (
+	"fmt"
 
-// @struct serial
-// @brief 序列号产生器
-type serial uint64
-
-const (
-	// MaxSerialNumber is the max avaliable sequence number
-	MaxSerialNumber serial = (1 << 10) - 1
+	ierror "github.com/lsytj0413/fyllo/error"
 )
 
-// get the next serial at this microsecond
-func (p *serial) next() (uint64, error) {
-	if *p >= MaxSerialNumber {
-		panic(fmt.Errorf("out of serial"))
-	}
-
-	sNumber := *p
-	*p++
-
-	return uint64(sNumber), nil
+type sequence interface {
+	next() (uint64, error)
+	reset()
+	isOutRange() bool
 }
 
-// reset serial, at every microsecond should reset serail first
-func (p *serial) reset() {
-	*p = 0
+type defSequence struct {
+	max uint64
+	now uint64
+}
+
+func (s *defSequence) next() (uint64, error) {
+	if s.now >= s.max {
+		return 0, ierror.NewError(ierror.EcodeSequenceOutOfRange, fmt.Sprintf("sequence should in range of [0, %d)", s.max))
+	}
+
+	tmp := s.now
+	s.now++
+	return tmp, nil
+}
+
+func (s *defSequence) reset() {
+	s.now = 0
+}
+
+func (s *defSequence) isOutRange() bool {
+	return s.now >= s.max
 }

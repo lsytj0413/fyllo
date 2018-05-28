@@ -28,8 +28,13 @@ const (
 	EcodeInitFailed = 30000001
 	// EcodeNotImplement errors for system not implement
 	EcodeNotImplement = 40000001
-	// EcodePluginNotImplement erross for factory doesn't support plugin
+	// EcodePluginNotImplement errors for factory doesn't support plugin
 	EcodePluginNotImplement = 40000002
+
+	// EcodeSequenceOutOfRange errors for sequence exhaust
+	EcodeSequenceOutOfRange = 40001001
+	// EcodeTimestampRewind errors for current timestamp less than last
+	EcodeTimestampRewind = 40001002
 
 	// EcodeUnknown errors for unexpected server error
 	EcodeUnknown = 99999999
@@ -41,6 +46,8 @@ var errorsMessage = map[int]string{
 	EcodeUnknown:            "Server Unknown Error",
 	EcodeNotImplement:       "Not Implement",
 	EcodePluginNotImplement: "Plugin Not Implement",
+	EcodeSequenceOutOfRange: "Sequence Out Of Range",
+	EcodeTimestampRewind:    "Current Timestamp Less Than Last",
 }
 
 var errorsStatus = map[int]int{
