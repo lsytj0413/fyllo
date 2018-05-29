@@ -16,13 +16,9 @@ package segment
 
 import (
 	"context"
-	"errors"
 
 	"github.com/lsytj0413/fyllo/conf"
-)
-
-var (
-	errNotImplement = errors.New("not implement")
+	ierror "github.com/lsytj0413/fyllo/error"
 )
 
 type createFunc func(conf.GeneratorConfig) (Generator, error)
@@ -54,12 +50,12 @@ func (d *defFactory) create(config conf.GeneratorConfig) (Generator, error) {
 			return g, err
 		}
 
-		if err != errNotImplement {
+		if !ierror.IsPluginNotImplement(err) {
 			return nil, err
 		}
 	}
 
-	return nil, errNotImplement
+	return nil, ierror.NewPluginNotImplement("segment factory doesn't have plugin")
 }
 
 var (

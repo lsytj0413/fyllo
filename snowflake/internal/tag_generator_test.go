@@ -15,31 +15,16 @@
 package internal
 
 import (
-	"time"
+	"testing"
+
+	"github.com/stretchr/testify/suite"
 )
 
-const (
-	// Nano2MicroRatio is the ratio convert nanoseconds to microseconds
-	Nano2MicroRatio = 1000000
-)
-
-type timeTuner interface {
-	currMicroSeconds() uint64
-	waitForNextMS(uint64) uint64
+type tagGeneratorTestSuite struct {
+	suite.Suite
 }
 
-type systemTimeTuner struct {
-}
-
-func (m *systemTimeTuner) currMicroSeconds() uint64 {
-	return uint64(time.Now().UnixNano()) / Nano2MicroRatio
-}
-
-func (m *systemTimeTuner) waitForNextMS(timestamp uint64) uint64 {
-	for {
-		now := m.currMicroSeconds()
-		if now > timestamp {
-			return now
-		}
-	}
+func TestTagGeneratorTestSuite(t *testing.T) {
+	p := &tagGeneratorTestSuite{}
+	suite.Run(t, p)
 }

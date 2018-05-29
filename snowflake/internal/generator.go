@@ -69,10 +69,8 @@ func (sf *sfGenerator) getGeneratorByTag(tag uint64) Generator {
 	g = &tagGenerator{
 		tag:     tag,
 		machine: sf.machine,
-		t:       &systemTimeTuner{},
-		s: &defSequence{
-			max: MaxSequenceValue,
-		},
+		t:       newMs(),
+		s:       newSequence(MaxSequenceValue),
 	}
 	sf.mappers[tag] = g
 	return g
@@ -88,7 +86,7 @@ func NewGenerator(machine uint64) (Generator, error) {
 	g := &sfGenerator{
 		mutex:   sync.RWMutex{},
 		machine: machine,
-		mappers: make(map[uint64]Generator, 32),
+		mappers: make(map[uint64]Generator, MaxTag-1),
 	}
 
 	return g, nil

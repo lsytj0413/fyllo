@@ -29,7 +29,7 @@ type tagGenerator struct {
 	mutex         sync.Mutex
 
 	s sequence
-	t timeTuner
+	t ms
 }
 
 func (g *tagGenerator) processWithTimestamp(now uint64) (uint64, error) {
@@ -72,7 +72,7 @@ func (g *tagGenerator) Next(tag uint64) (*Result, error) {
 	}
 	r.Next = newID(r.Timestamp, r.Machine, r.Tag, r.Sequence)
 
-	return nil, nil
+	return r, nil
 }
 
 func newID(t uint64, m uint64, b uint64, s uint64) uint64 {
