@@ -17,7 +17,7 @@ before_script:
 
 script:
 - make -f Makefile dep
-- go test -race -coverprofile=coverage.txt -covermode=atomic
+- go test -race -coverprofile=coverage.txt -covermode=atomic ./...
 
 branches:
   only:
