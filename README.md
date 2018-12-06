@@ -1,8 +1,8 @@
 <p align="center"><img src="docs/fyllo.png" alt="fyllo" height="100px"></p>
 
 <div align="center">
-  <a href='https://coveralls.io/github/lsytj0413/fyllo'>
-    <img src='https://coveralls.io/repos/github/lsytj0413/fyllo/badge.svg' alt='Coverage Status' />
+  <a href="https://codecov.io/gh/lsytj0413/fyllo">
+    <img src="https://codecov.io/gh/lsytj0413/fyllo/branch/master/graph/badge.svg" />
   </a>
   <a href="https://travis-ci.org/lsytj0413/fyllo">
     <img src="https://img.shields.io/travis/lsytj0413/fyllo.svg?style=flat-square" alt="Build Status">
