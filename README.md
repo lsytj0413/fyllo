@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/fyllo.png" alt="fyllo" height="100px"></p>
+<p align="center"><img src="docs/fyllo-logo.png" alt="fyllo" height="100px"></p>
 
 <div align="center">
   <a href="https://codecov.io/gh/lsytj0413/fyllo">
