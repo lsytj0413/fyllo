@@ -12,4 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package doc
+package fyllo
+
+import "fmt"
+
+// Main is entrance for follymain application
+func Main() {
+	fmt.Println("fyllo.Main")
+}

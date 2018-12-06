@@ -15,9 +15,9 @@
 package main
 
 import (
-	"github.com/lsytj0413/fyllo/fyllomain"
+	"github.com/lsytj0413/fyllo/pkg/fyllo"
 )
 
 func main() {
-	fyllomain.Main()
+	fyllo.Main()
 }

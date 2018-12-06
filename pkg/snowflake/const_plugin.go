@@ -17,9 +17,9 @@ package snowflake
 import (
 	"context"
 
-	"github.com/lsytj0413/fyllo/conf"
-	ierror "github.com/lsytj0413/fyllo/error"
-	"github.com/lsytj0413/fyllo/snowflake/internal"
+	"github.com/lsytj0413/fyllo/pkg/conf"
+	ierror "github.com/lsytj0413/fyllo/pkg/error"
+	"github.com/lsytj0413/fyllo/pkg/snowflake/internal"
 )
 
 type constPlugin struct {

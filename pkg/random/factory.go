@@ -12,13 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package snowflake
+package random
 
 import (
 	"context"
 
-	"github.com/lsytj0413/fyllo/conf"
-	ierror "github.com/lsytj0413/fyllo/error"
+	"github.com/lsytj0413/fyllo/pkg/conf"
+	ierror "github.com/lsytj0413/fyllo/pkg/error"
 )
 
 type createFunc func(conf.GeneratorConfig) (Generator, error)
@@ -31,7 +31,7 @@ type factory interface {
 
 // Generator is interface for random generator
 type Generator interface {
-	Next(context.Context, uint64) (*conf.SnowflakeResult, error)
+	Next(context.Context) (*conf.RandomResult, error)
 }
 
 type defFactory struct {
@@ -55,7 +55,7 @@ func (d *defFactory) create(config conf.GeneratorConfig) (Generator, error) {
 		}
 	}
 
-	return nil, ierror.NewPluginNotImplement("snowflake factory doesn't have plugin")
+	return nil, ierror.NewPluginNotImplement("random factory doesn't have plugin")
 }
 
 var (

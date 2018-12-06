@@ -17,7 +17,7 @@ package internal
 import (
 	"fmt"
 
-	ierror "github.com/lsytj0413/fyllo/error"
+	ierror "github.com/lsytj0413/fyllo/pkg/error"
 )
 
 type sequence interface {

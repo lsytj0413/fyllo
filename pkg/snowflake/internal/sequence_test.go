@@ -17,9 +17,10 @@ package internal
 import (
 	"testing"
 
-	"github.com/lsytj0413/ena/cerror"
-	ierror "github.com/lsytj0413/fyllo/error"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/lsytj0413/ena/cerror"
+	ierror "github.com/lsytj0413/fyllo/pkg/error"
 )
 
 type sequenceTestSuite struct {

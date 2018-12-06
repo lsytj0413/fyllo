@@ -18,9 +18,10 @@ import (
 	"context"
 	"hash/fnv"
 
-	"github.com/lsytj0413/fyllo/conf"
-	ierror "github.com/lsytj0413/fyllo/error"
 	uuid "github.com/satori/go.uuid"
+
+	"github.com/lsytj0413/fyllo/pkg/conf"
+	ierror "github.com/lsytj0413/fyllo/pkg/error"
 )
 
 type uuidPlugin struct {

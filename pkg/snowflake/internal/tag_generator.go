@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"sync"
 
-	ierror "github.com/lsytj0413/fyllo/error"
+	ierror "github.com/lsytj0413/fyllo/pkg/error"
 )
 
 // Generator implement bind tag
