@@ -12,4 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package fyllo
+package random
+
+// Provider for provide random id
+type Provider interface {
+	Name() string
+	Next() (uint64, error)
+}
