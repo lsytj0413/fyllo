@@ -14,8 +14,13 @@
 
 package random
 
+import "github.com/lsytj0413/fyllo/pkg/common"
+
 // Provider for provide random id
 type Provider interface {
 	Name() string
-	Next() (uint64, error)
+	Next() (*Result, error)
 }
+
+// Result for random Next
+type Result = common.ProviderResult

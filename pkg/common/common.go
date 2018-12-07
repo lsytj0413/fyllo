@@ -12,15 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package snowflake
+package common
 
-import "github.com/lsytj0413/fyllo/pkg/common"
-
-// Provider for provide snowflake id
-type Provider interface {
-	Name() string
-	Next() (*Result, error)
+// ProviderResult for provider next
+type ProviderResult struct {
+	Name   string            `json:"name"`
+	Next   uint64            `json:"next"`
+	Labels map[string]string `json:"labels,omitempty"`
 }
-
-// Result for snowflake Next
-type Result = common.ProviderResult

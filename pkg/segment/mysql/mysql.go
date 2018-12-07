@@ -30,8 +30,15 @@ func (p *mysqlProvider) Name() string {
 	return ProviderName
 }
 
-func (p *mysqlProvider) Next() (uint64, error) {
-	return 0, nil
+func (p *mysqlProvider) Next() (*segment.Result, error) {
+	r := &segment.Result{
+		Name: ProviderName,
+		Next: 0,
+		Labels: map[string]string{
+			"tag": "",
+		},
+	}
+	return r, nil
 }
 
 // Options is mysql segment provider option

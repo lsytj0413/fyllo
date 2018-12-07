@@ -34,14 +34,22 @@ func (p *uuidProvider) Name() string {
 	return ProviderName
 }
 
-func (p *uuidProvider) Next() (uint64, error) {
+func (p *uuidProvider) Next() (*random.Result, error) {
 	identify := gouuid.NewV4().String()
 	h := fnv.New64a()
 	_, err := h.Write([]byte(identify))
 	if err != nil {
-		return 0, nil
+		return nil, err
 	}
-	return h.Sum64(), nil
+
+	r := &random.Result{
+		Name: ProviderName,
+		Labels: map[string]string{
+			"identify": identify,
+		},
+		Next: h.Sum64(),
+	}
+	return r, nil
 }
 
 // Options is uuid random provider option

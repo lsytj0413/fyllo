@@ -14,8 +14,13 @@
 
 package segment
 
+import "github.com/lsytj0413/fyllo/pkg/common"
+
 // Provider for provide segment id
 type Provider interface {
 	Name() string
-	Next() (uint64, error)
+	Next() (*Result, error)
 }
+
+// Result for segment Next
+type Result = common.ProviderResult
