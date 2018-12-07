@@ -18,13 +18,13 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/lsytj0413/fyllo/pkg/random"
-	"github.com/lsytj0413/fyllo/pkg/random/uuid"
+	"github.com/lsytj0413/fyllo/pkg/snowflake"
+	"github.com/lsytj0413/fyllo/pkg/snowflake/rock"
 )
 
-// AvailableProviders supported by the random provider builder.
+// AvailableProviders supported by the snowflake provider builder.
 var AvailableProviders = []string{
-	uuid.ProviderName,
+	rock.ProviderName,
 }
 
 // AvailableProvidersDescription is string readable description for providers list
@@ -36,10 +36,10 @@ type Options struct {
 	ProviderArgs string
 }
 
-// Builder for build random provider
+// Builder for build snowflake provider
 type Builder interface {
-	// Build will return random.Provider implement specfied by the ProviderName
-	Build() (random.Provider, error)
+	// Build will return snowflake.Provider implement specfied by the ProviderName
+	Build() (snowflake.Provider, error)
 }
 
 // NewBuilder return Builder instance
@@ -64,10 +64,10 @@ type builder struct {
 	options *Options
 }
 
-func (b *builder) Build() (random.Provider, error) {
+func (b *builder) Build() (snowflake.Provider, error) {
 	switch b.options.ProviderName {
-	case uuid.ProviderName:
-		return uuid.NewProvider(&uuid.Options{
+	case rock.ProviderName:
+		return rock.NewProvider(&rock.Options{
 			Args: b.options.ProviderArgs,
 		})
 	}

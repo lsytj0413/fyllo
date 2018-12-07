@@ -12,5 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package snowflake contains all snowflake generator component
-package snowflake
+package mysql
+
+import (
+	"github.com/lsytj0413/fyllo/pkg/segment"
+)
+
+const (
+	// ProviderName for the mysql segment provider
+	ProviderName = "mysql"
+)
+
+type mysqlProvider struct {
+}
+
+func (p *mysqlProvider) Name() string {
+	return ProviderName
+}
+
+func (p *mysqlProvider) Next() (uint64, error) {
+	return 0, nil
+}
+
+// Options is mysql segment provider option
+type Options struct {
+	Args string
+}
+
+// NewProvider return mysql segment provider implement
+func NewProvider(options *Options) (segment.Provider, error) {
+	return nil, nil
+}

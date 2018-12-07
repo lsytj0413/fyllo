@@ -12,5 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package snowflake contains all snowflake generator component
-package snowflake
+package segment
+
+// Provider for provide segment id
+type Provider interface {
+	Name() string
+	Next() (uint64, error)
+}
