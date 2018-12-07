@@ -17,10 +17,8 @@
 package internal
 
 import (
-	"fmt"
 	"sync"
 
-	ierror "github.com/lsytj0413/fyllo/pkg/error"
 	"github.com/lsytj0413/fyllo/pkg/snowflake"
 )
 
@@ -34,7 +32,7 @@ type Identifier interface {
 type CommonProvider struct {
 	mutex         sync.RWMutex
 	lastMachineID uint64
-	providers     map[uint64]snowflake.Provider
+	seqs          map[uint64]Sequencer
 
 	name       string
 	identifier Identifier
@@ -45,7 +43,7 @@ func NewProvider(name string, identifier Identifier) *CommonProvider {
 	return &CommonProvider{
 		identifier: identifier,
 		name:       name,
-		providers:  map[uint64]snowflake.Provider{},
+		seqs:       map[uint64]Sequencer{},
 	}
 }
 
@@ -61,38 +59,42 @@ func (p *CommonProvider) Next(arg *snowflake.Arguments) (*snowflake.Result, erro
 		return nil, err
 	}
 
-	provider := p.providerForTag(0)
-	r, err := provider.Next(arg)
+	seqer := p.sequencerForTag(0)
+	sequenceNumber, timestamp, err := seqer.Next()
 	if err != nil {
 		return nil, err
 	}
 
-	r.Name = p.name
+	r := &snowflake.Result{
+		Name: p.name,
+		Next: snowflake.MakeSnowflakeID(timestamp, p.lastMachineID, 0, sequenceNumber),
+		Labels: map[string]string{
+			"sequence":  "",
+			"timestamp": "",
+			"tag":       "0",
+			"machine":   "",
+		},
+	}
 	return r, nil
 }
 
-func (p *CommonProvider) providerForTag(tag uint64) (provider snowflake.Provider) {
+func (p *CommonProvider) sequencerForTag(tag uint64) (seq Sequencer) {
 	func() {
 		p.mutex.RLock()
 		defer p.mutex.RUnlock()
 
-		provider, _ = p.providers[tag]
+		seq, _ = p.seqs[tag]
 	}()
-	if provider != nil {
+	if seq != nil {
 		return
 	}
 
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
-	provider = &tagProvider{
-		tag:     tag,
-		machine: p.lastMachineID,
-		t:       newMs(),
-		s:       newSequence(snowflake.MaxSequenceValue),
-	}
-	p.providers[tag] = provider
-	return provider
+	seq = NewSequencer()
+	p.seqs[tag] = seq
+	return seq
 }
 
 // checkIdentify make sure machine id is correct
@@ -109,61 +111,9 @@ func (p *CommonProvider) checkIdentify() error {
 
 			if currMachineID != p.lastMachineID {
 				p.lastMachineID = currMachineID
-				p.providers = make(map[uint64]snowflake.Provider)
+				p.seqs = make(map[uint64]Sequencer)
 			}
 		}()
 	}
 	return nil
-}
-
-type tagProvider struct {
-	tag           uint64
-	machine       uint64
-	lastTimestamp uint64
-	mutex         sync.Mutex
-
-	s sequence
-	t ms
-}
-
-func (p *tagProvider) Name() string {
-	return "tagProvider"
-}
-
-func (p *tagProvider) Next(arg *snowflake.Arguments) (*snowflake.Result, error) {
-	_, err := p.processWithTimestamp(p.t.currMicroSeconds())
-	if err != nil {
-		return nil, err
-	}
-
-	sequenceNumber, err := p.s.next()
-	if err != nil {
-		return nil, err
-	}
-	r := &snowflake.Result{
-		Next: snowflake.MakeSnowflakeID(p.lastTimestamp, p.machine, p.tag, sequenceNumber),
-		Labels: map[string]string{
-			"timestamp": fmt.Sprintf("%d", p.lastTimestamp),
-			"sequence":  fmt.Sprintf("%d", sequenceNumber),
-			"tag":       fmt.Sprintf("%d", 0),
-			"machine":   fmt.Sprintf("%d", p.machine),
-		},
-	}
-	return r, nil
-}
-
-func (p *tagProvider) processWithTimestamp(now uint64) (uint64, error) {
-	if now > p.lastTimestamp {
-		p.lastTimestamp = now
-		p.s.reset()
-	} else if now == p.lastTimestamp {
-		if p.s.isOutRange() {
-			p.lastTimestamp = p.t.waitForNextMS(now)
-			p.s.reset()
-		}
-	} else {
-		return 0, ierror.NewError(ierror.EcodeTimestampRewind, fmt.Sprintf("current timestamp[%d] less than last timestamp[%d]", now, p.lastTimestamp))
-	}
-
-	return p.lastTimestamp, nil
 }

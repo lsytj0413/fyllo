@@ -14,9 +14,7 @@
 
 package internal
 
-import (
-	"time"
-)
+import "time"
 
 const (
 	// Nano2MicroRatio is the ratio convert nanoseconds to microseconds
@@ -27,30 +25,31 @@ var (
 	nano func() uint64
 )
 
-type ms interface {
-	currMicroSeconds() uint64
-	waitForNextMS(uint64) uint64
+// Ticker for snowflake tick
+type Ticker interface {
+	Current() uint64
+	WaitForNext(uint64) uint64
 }
 
-type defMs struct {
+type ticker struct {
 }
 
-func (m *defMs) currMicroSeconds() uint64 {
+func (t *ticker) Current() uint64 {
 	return nano() / Nano2MicroRatio
 }
 
-func (m *defMs) waitForNextMS(timestamp uint64) uint64 {
+func (t *ticker) WaitForNext(cur uint64) uint64 {
 	for {
-		now := m.currMicroSeconds()
-		if now > timestamp {
+		now := t.Current()
+		if now > cur {
 			return now
 		}
 	}
 }
 
-func newMs() ms {
-	return &defMs{}
-}
+var (
+	defaultTicker Ticker = &ticker{}
+)
 
 func init() {
 	nano = func() uint64 {
