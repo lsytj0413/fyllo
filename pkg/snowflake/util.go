@@ -14,15 +14,15 @@
 
 package snowflake
 
-const (
-	// MaxTag is maxinum of tag value
-	MaxTag = 1 << 8
-
-	// MaxMachine is maxinum of machine value
-	MaxMachine = 1 << 4
-)
+import "errors"
 
 const (
+	// MaxTagValue is maxinum of tag value
+	MaxTagValue uint64 = 1 << 8
+
+	// MaxMachineValue is maxinum of machine value
+	MaxMachineValue uint64 = 1 << 4
+
 	// MaxSequenceValue is max value of sequence
 	MaxSequenceValue uint64 = (1 << 10)
 )
@@ -62,4 +62,22 @@ func MakeSnowflakeID(timestamp uint64, mid uint64, bid uint64, sequenceNumber ui
 	sequenceNumber = (sequenceNumber & SerialIDMask)
 
 	return (timestamp | mid | bid | sequenceNumber)
+}
+
+// IsValidMachine check machine id is valid
+func IsValidMachine(mid uint64) error {
+	if mid >= MaxMachineValue {
+		return errors.New("Invalid mid")
+	}
+
+	return nil
+}
+
+// IsValidTag check bussiness id is valid
+func IsValidTag(bid uint64) error {
+	if bid >= MaxTagValue {
+		return errors.New("Invalid bid")
+	}
+
+	return nil
 }

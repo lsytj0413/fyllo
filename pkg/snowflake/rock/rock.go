@@ -47,7 +47,7 @@ func NewProvider(options *Options) (snowflake.Provider, error) {
 	if err != nil {
 		return nil, err
 	}
-	if mid < 0 || uint64(mid) >= snowflake.MaxMachine {
+	if mid < 0 || uint64(mid) >= snowflake.MaxMachineValue {
 		return nil, errors.New("wrong machine id")
 	}
 
