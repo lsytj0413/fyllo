@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package internal
+package snowflake
 
 const (
 	// MaxTag is maxinum of tag value
@@ -20,6 +20,11 @@ const (
 
 	// MaxMachine is maxinum of machine value
 	MaxMachine = 1 << 4
+)
+
+const (
+	// MaxSequenceValue is max value of sequence
+	MaxSequenceValue uint64 = (1 << 10)
 )
 
 const (
@@ -48,7 +53,13 @@ const (
 	SerialIDMask uint64 = 0x00000000000003FF
 )
 
-const (
-	// MaxSequenceValue is max value of sequence
-	MaxSequenceValue uint64 = (1 << 10)
-)
+// MakeSnowflakeID generate snowflake ID from timestamp, machine id, bussiness id and sequence number.
+// it use snowflake algorithm.
+func MakeSnowflakeID(timestamp uint64, mid uint64, bid uint64, sequenceNumber uint64) uint64 {
+	timestamp = ((timestamp - StandardTimestamp) & TimestampMask) << TimestampShiftNum
+	mid = (mid & MachineIDMask) << MachineIDShiftNum
+	bid = (bid & BusIDMask) << BusIDShiftNum
+	sequenceNumber = (sequenceNumber & SerialIDMask)
+
+	return (timestamp | mid | bid | sequenceNumber)
+}

@@ -16,7 +16,11 @@
 package rock
 
 import (
+	"errors"
+	"strconv"
+
 	"github.com/lsytj0413/fyllo/pkg/snowflake"
+	"github.com/lsytj0413/fyllo/pkg/snowflake/internal"
 )
 
 const (
@@ -45,6 +49,14 @@ func (p *rockProvider) Next() (*snowflake.Result, error) {
 	return r, nil
 }
 
+type rockIdentifier struct {
+	mid uint64
+}
+
+func (r *rockIdentifier) Identify() (uint64, error) {
+	return r.mid, nil
+}
+
 // Options is rock snowflake provider option
 type Options struct {
 	Args string
@@ -52,5 +64,15 @@ type Options struct {
 
 // NewProvider return rock snowflake provider implement
 func NewProvider(options *Options) (snowflake.Provider, error) {
-	return nil, nil
+	mid, err := strconv.Atoi(options.Args)
+	if err != nil {
+		return nil, err
+	}
+	if mid < 0 || uint64(mid) >= snowflake.MaxMachine {
+		return nil, errors.New("wrong machine id")
+	}
+
+	return internal.NewProvider(ProviderName, &rockIdentifier{
+		mid: uint64(mid),
+	}), nil
 }
