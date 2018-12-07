@@ -19,8 +19,12 @@ import "github.com/lsytj0413/fyllo/pkg/common"
 // Provider for provide segment id
 type Provider interface {
 	Name() string
-	Next() (*Result, error)
+	Next(arg *Arguments) (*Result, error)
 }
 
 // Result for segment Next
 type Result = common.ProviderResult
+
+// Arguments for segment generate
+type Arguments struct {
+}

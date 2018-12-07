@@ -28,27 +28,6 @@ const (
 	ProviderName = "rock"
 )
 
-type rockProvider struct {
-}
-
-func (p *rockProvider) Name() string {
-	return ProviderName
-}
-
-func (p *rockProvider) Next() (*snowflake.Result, error) {
-	r := &snowflake.Result{
-		Name: ProviderName,
-		Next: 0,
-		Labels: map[string]string{
-			"timestamp": "",
-			"sequence":  "",
-			"machine":   "",
-			"tag":       "",
-		},
-	}
-	return r, nil
-}
-
 type rockIdentifier struct {
 	mid uint64
 }

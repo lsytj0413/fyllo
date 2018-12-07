@@ -30,7 +30,7 @@ func (p *mysqlProvider) Name() string {
 	return ProviderName
 }
 
-func (p *mysqlProvider) Next() (*segment.Result, error) {
+func (p *mysqlProvider) Next(arg *segment.Arguments) (*segment.Result, error) {
 	r := &segment.Result{
 		Name: ProviderName,
 		Next: 0,

@@ -55,14 +55,14 @@ func (p *CommonProvider) Name() string {
 }
 
 // Next implement snowflake.Provider Next
-func (p *CommonProvider) Next() (*snowflake.Result, error) {
+func (p *CommonProvider) Next(arg *snowflake.Arguments) (*snowflake.Result, error) {
 	err := p.checkIdentify()
 	if err != nil {
 		return nil, err
 	}
 
 	provider := p.providerForTag(0)
-	r, err := provider.Next()
+	r, err := provider.Next(arg)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +130,7 @@ func (p *tagProvider) Name() string {
 	return "tagProvider"
 }
 
-func (p *tagProvider) Next() (*snowflake.Result, error) {
+func (p *tagProvider) Next(arg *snowflake.Arguments) (*snowflake.Result, error) {
 	_, err := p.processWithTimestamp(p.t.currMicroSeconds())
 	if err != nil {
 		return nil, err

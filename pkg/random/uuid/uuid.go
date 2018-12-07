@@ -34,7 +34,7 @@ func (p *uuidProvider) Name() string {
 	return ProviderName
 }
 
-func (p *uuidProvider) Next() (*random.Result, error) {
+func (p *uuidProvider) Next(arg *random.Arguments) (*random.Result, error) {
 	identify := gouuid.NewV4().String()
 	h := fnv.New64a()
 	_, err := h.Write([]byte(identify))
