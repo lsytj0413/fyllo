@@ -27,4 +27,10 @@ type Result = common.ProviderResult
 
 // Arguments for segment generate
 type Arguments struct {
+	Tag string `json:"tag"`
 }
+
+const (
+	// LabelTag for tag label key
+	LabelTag = "tag"
+)

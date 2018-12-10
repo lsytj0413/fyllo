@@ -16,6 +16,7 @@ package mysql
 
 import (
 	"github.com/lsytj0413/fyllo/pkg/segment"
+	"github.com/lsytj0413/fyllo/pkg/segment/internal"
 )
 
 const (
@@ -23,30 +24,23 @@ const (
 	ProviderName = "mysql"
 )
 
-type mysqlProvider struct {
-}
-
-func (p *mysqlProvider) Name() string {
-	return ProviderName
-}
-
-func (p *mysqlProvider) Next(arg *segment.Arguments) (*segment.Result, error) {
-	r := &segment.Result{
-		Name: ProviderName,
-		Next: 0,
-		Labels: map[string]string{
-			"tag": "",
-		},
-	}
-	return r, nil
-}
-
 // Options is mysql segment provider option
 type Options struct {
 	Args string
 }
 
+type mysqlStorage struct {
+}
+
+func (m *mysqlStorage) List() ([]string, error) {
+	return []string{}, nil
+}
+
+func (m *mysqlStorage) Obtain(tag string) (*internal.TagItem, error) {
+	return nil, nil
+}
+
 // NewProvider return mysql segment provider implement
 func NewProvider(options *Options) (segment.Provider, error) {
-	return nil, nil
+	return internal.NewProvider(ProviderName, &mysqlStorage{})
 }

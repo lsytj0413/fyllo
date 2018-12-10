@@ -19,9 +19,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/lsytj0413/fyllo/pkg/snowflake"
-
 	"github.com/stretchr/testify/suite"
+
+	"github.com/lsytj0413/fyllo/pkg/snowflake"
 )
 
 type rockTestSuite struct {

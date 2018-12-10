@@ -17,8 +17,9 @@ package builder
 import (
 	"testing"
 
-	"github.com/lsytj0413/fyllo/pkg/random/uuid"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/lsytj0413/fyllo/pkg/random/uuid"
 )
 
 type builderTestSuite struct {

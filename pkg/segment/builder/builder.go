@@ -19,12 +19,14 @@ import (
 	"strings"
 
 	"github.com/lsytj0413/fyllo/pkg/segment"
+	"github.com/lsytj0413/fyllo/pkg/segment/mem"
 	"github.com/lsytj0413/fyllo/pkg/segment/mysql"
 )
 
 // AvailableProviders supported by the segment provider builder.
 var AvailableProviders = []string{
 	mysql.ProviderName,
+	mem.ProviderName,
 }
 
 // AvailableProvidersDescription is string readable description for providers list
@@ -52,7 +54,7 @@ func NewBuilder(options *Options) (Builder, error) {
 		}
 	}
 	if !found {
-		return nil, fmt.Errorf("Invalid ProviderName[%s]", options.ProviderName)
+		return nil, fmt.Errorf("Invalid ProviderName[%s], Valid: %s", options.ProviderName, AvailableProvidersDescription)
 	}
 
 	return &builder{
@@ -70,9 +72,13 @@ func (b *builder) Build() (segment.Provider, error) {
 		return mysql.NewProvider(&mysql.Options{
 			Args: b.options.ProviderArgs,
 		})
+	case mem.ProviderName:
+		return mem.NewProvider(&mem.Options{
+			Args: b.options.ProviderArgs,
+		})
 	}
 
-	return nil, fmt.Errorf("Invalid ProviderName[%s]", b.options.ProviderName)
+	return nil, fmt.Errorf("Invalid ProviderName[%s], Valid: %s", b.options.ProviderName, AvailableProvidersDescription)
 }
 
 func init() {

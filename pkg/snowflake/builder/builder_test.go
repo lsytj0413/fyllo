@@ -17,8 +17,9 @@ package builder
 import (
 	"testing"
 
-	"github.com/lsytj0413/fyllo/pkg/snowflake/rock"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/lsytj0413/fyllo/pkg/snowflake/rock"
 )
 
 type builderTestSuite struct {
