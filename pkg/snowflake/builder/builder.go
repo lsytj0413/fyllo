@@ -52,7 +52,7 @@ func NewBuilder(options *Options) (Builder, error) {
 		}
 	}
 	if !found {
-		return nil, fmt.Errorf("Invalid ProviderName[%s]", options.ProviderName)
+		return nil, fmt.Errorf("Invalid ProviderName[%s], Valid: %s", options.ProviderName, AvailableProvidersDescription)
 	}
 
 	return &builder{
@@ -72,7 +72,7 @@ func (b *builder) Build() (snowflake.Provider, error) {
 		})
 	}
 
-	return nil, fmt.Errorf("Invalid ProviderName[%s]", b.options.ProviderName)
+	return nil, fmt.Errorf("Invalid ProviderName[%s], Valid: %s", b.options.ProviderName, AvailableProvidersDescription)
 }
 
 func init() {

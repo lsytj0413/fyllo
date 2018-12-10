@@ -51,8 +51,12 @@ var (
 	defaultTicker Ticker = &ticker{}
 )
 
-func init() {
-	nano = func() uint64 {
+var (
+	timeNano = func() uint64 {
 		return uint64(time.Now().UnixNano())
 	}
+)
+
+func init() {
+	nano = timeNano
 }

@@ -13,3 +13,18 @@
 // limitations under the License.
 
 package internal
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/suite"
+)
+
+type providerTestSuite struct {
+	suite.Suite
+}
+
+func TestProviderTestSuite(t *testing.T) {
+	s := &providerTestSuite{}
+	suite.Run(t, s)
+}
