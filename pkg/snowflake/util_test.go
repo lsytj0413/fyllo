@@ -56,6 +56,40 @@ func (s *utilTestSuite) TestIsValidTag() {
 	}
 }
 
+func (s *utilTestSuite) TestMakeSnowflakeID() {
+	type testCase struct {
+		Description string
+
+		timestamp      uint64
+		mid            uint64
+		bid            uint64
+		sequenceNumber uint64
+
+		expected uint64
+	}
+	testCases := []testCase{
+		{
+			Description:    "zero",
+			timestamp:      StandardTimestamp,
+			mid:            0,
+			bid:            0,
+			sequenceNumber: 0,
+			expected:       0,
+		},
+		{
+			Description:    "mid normal",
+			timestamp:      StandardTimestamp,
+			mid:            1,
+			bid:            0,
+			sequenceNumber: 0,
+			expected:       0x0000000000040000,
+		},
+	}
+	for _, tc := range testCases {
+		s.Equal(tc.expected, MakeSnowflakeID(tc.timestamp, tc.mid, tc.bid, tc.sequenceNumber), tc.Description)
+	}
+}
+
 func TestUtilTestSuite(t *testing.T) {
 	s := &utilTestSuite{}
 	suite.Run(t, s)

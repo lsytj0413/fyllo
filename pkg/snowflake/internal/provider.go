@@ -17,6 +17,7 @@
 package internal
 
 import (
+	"fmt"
 	"sync"
 
 	"github.com/lsytj0413/fyllo/pkg/snowflake"
@@ -59,7 +60,7 @@ func (p *CommonProvider) Next(arg *snowflake.Arguments) (*snowflake.Result, erro
 		return nil, err
 	}
 
-	seqer := p.sequencerForTag(0)
+	seqer := p.sequencerForTag(arg.Tag)
 	sequenceNumber, timestamp, err := seqer.Next()
 	if err != nil {
 		return nil, err
@@ -67,12 +68,12 @@ func (p *CommonProvider) Next(arg *snowflake.Arguments) (*snowflake.Result, erro
 
 	r := &snowflake.Result{
 		Name: p.name,
-		Next: snowflake.MakeSnowflakeID(timestamp, p.lastMachineID, 0, sequenceNumber),
+		Next: snowflake.MakeSnowflakeID(timestamp, p.lastMachineID, arg.Tag, sequenceNumber),
 		Labels: map[string]string{
-			"sequence":  "",
-			"timestamp": "",
-			"tag":       "0",
-			"machine":   "",
+			snowflake.LabelSequence:  fmt.Sprintf("%d", sequenceNumber),
+			snowflake.LabelTimestamp: fmt.Sprintf("%d", timestamp),
+			snowflake.LabelTag:       fmt.Sprintf("%d", arg.Tag),
+			snowflake.LabelMachine:   fmt.Sprintf("%d", p.lastMachineID),
 		},
 	}
 	return r, nil

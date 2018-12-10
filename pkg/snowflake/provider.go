@@ -29,3 +29,17 @@ type Result = common.ProviderResult
 type Arguments struct {
 	Tag uint64
 }
+
+const (
+	// LabelSequence for sequence label key
+	LabelSequence = "sequence"
+
+	// LabelTimestamp for timestamp label key
+	LabelTimestamp = "timestamp"
+
+	// LabelTag for tag label key
+	LabelTag = "tag"
+
+	// LabelMachine for machine label key
+	LabelMachine = "machine"
+)

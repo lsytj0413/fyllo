@@ -14,7 +14,9 @@
 
 package snowflake
 
-import "errors"
+import (
+	"fmt"
+)
 
 const (
 	// MaxTagValue is maxinum of tag value
@@ -27,8 +29,19 @@ const (
 	MaxSequenceValue uint64 = (1 << 10)
 )
 
+var (
+	// TagValueRangeDescription is readable tag value range
+	TagValueRangeDescription = ""
+
+	// MachineValueRangeDescription is readable machine value range
+	MachineValueRangeDescription = ""
+
+	// SequenceValueRangeDescription is readable sequence value range
+	SequenceValueRangeDescription = ""
+)
+
 const (
-	// StandardTimestamp is the begining of timestamp
+	// StandardTimestamp is the begining of timestamp, its 2016-01-01 08:00:00
 	StandardTimestamp uint64 = 1451606400000
 
 	// TimestampMask is the mask of timestamp field
@@ -67,7 +80,7 @@ func MakeSnowflakeID(timestamp uint64, mid uint64, bid uint64, sequenceNumber ui
 // IsValidMachine check machine id is valid
 func IsValidMachine(mid uint64) error {
 	if mid >= MaxMachineValue {
-		return errors.New("Invalid mid")
+		return fmt.Errorf("Bad MachineID[%d], Valid: %s", mid, MachineValueRangeDescription)
 	}
 
 	return nil
@@ -76,8 +89,14 @@ func IsValidMachine(mid uint64) error {
 // IsValidTag check bussiness id is valid
 func IsValidTag(bid uint64) error {
 	if bid >= MaxTagValue {
-		return errors.New("Invalid bid")
+		return fmt.Errorf("Bad BussinessID[%d], Valid: %s", bid, TagValueRangeDescription)
 	}
 
 	return nil
+}
+
+func init() {
+	TagValueRangeDescription = fmt.Sprintf("[0, %d)", MaxTagValue)
+	MachineValueRangeDescription = fmt.Sprintf("[0, %d)", MaxMachineValue)
+	SequenceValueRangeDescription = fmt.Sprintf("[0, %d)", MaxSequenceValue)
 }
