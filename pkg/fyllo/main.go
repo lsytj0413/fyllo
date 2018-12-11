@@ -18,6 +18,14 @@ package fyllo
 import (
 	"flag"
 	"fmt"
+	"net/url"
+
+	"github.com/lsytj0413/ena/logger"
+
+	randomBuilder "github.com/lsytj0413/fyllo/pkg/random/builder"
+	segmentBuilder "github.com/lsytj0413/fyllo/pkg/segment/builder"
+	"github.com/lsytj0413/fyllo/pkg/server"
+	snowflakeBuilder "github.com/lsytj0413/fyllo/pkg/snowflake/builder"
 )
 
 var (
@@ -32,17 +40,60 @@ var (
 	isDebug                = flag.Bool("debug", false, "Enable debug log output.")
 	isPprof                = flag.Bool("pprof", false, "Enable pprof.")
 
-	randomProviderName = flag.String("random-provider", "", "Random provider type. Available values: []")
+	randomProviderName = flag.String("random-provider", "uuid", fmt.Sprintf("Random provider type. Available values: %s", randomBuilder.AvailableProvidersDescription))
 	randomProviderArgs = flag.String("random-provider-args", "", "Random provider external arguments.")
 
-	segmentProviderName = flag.String("segment-provider", "", "Segment provider type. Available values: []")
+	segmentProviderName = flag.String("segment-provider", "mem", fmt.Sprintf("Segment provider type. Available values: %s", segmentBuilder.AvailableProvidersDescription))
 	segmentProviderArgs = flag.String("segment-provider-args", "", "Segment provider external arguments.")
 
-	snowflakeProviderName = flag.String("snowflake-provider", "", "Snowflake provider type. Available values: []")
-	snowflakeProviderArgs = flag.String("snowflake-provider-args", "", "Snowflake provider external arguments.")
+	snowflakeProviderName = flag.String("snowflake-provider", "rock", fmt.Sprintf("Snowflake provider type. Available values: %s", snowflakeBuilder.AvailableProvidersDescription))
+	snowflakeProviderArgs = flag.String("snowflake-provider-args", "0", "Snowflake provider external arguments.")
 )
 
 // Main is entrance for follymain application
 func Main() {
-	fmt.Println("fyllo.Main")
+	flag.Parse()
+
+	if 0 != len(flag.Args()) {
+		logger.Errorf("'%s' is not a valid flag", flag.Arg(0))
+		return
+	}
+
+	clientURL, err := url.Parse(*listenClientURL)
+	if err != nil {
+		logger.Errorf("%s is not valid url: %v", *listenClientURL, err)
+		return
+	}
+
+	option := &server.Options{
+		Name:                   *name,
+		ListenClientURL:        clientURL,
+		ClientCertFile:         *clientCertFile,
+		ClientKeyFile:          *clientKeyFile,
+		ClientTrustedCAFile:    *clientTrustedCAFile,
+		IsClientCertAuthEnable: *isClientCertAuthEnable,
+		IsInsecureSkipVerify:   *isInsecureSkipVerify,
+		ClientCrlFile:          *clientCrlFile,
+		IsDebug:                *isDebug,
+		IsPprof:                *isPprof,
+		RandomProvider:         *randomProviderName,
+		RandomProviderArgs:     *randomProviderArgs,
+		SnowflakeProvider:      *snowflakeProviderName,
+		SnowflakeProviderArgs:  *snowflakeProviderArgs,
+		SegmentProvider:        *segmentProviderName,
+		SegmentProviderArgs:    *segmentProviderArgs,
+	}
+	srv, err := server.NewServer(option)
+	if err != nil {
+		logger.Errorf("NewServer failed: %v", err)
+		return
+	}
+
+	stop, err := srv.Start()
+	if err != nil {
+		logger.Errorf("Server Start failed: %v", err)
+		return
+	}
+
+	<-stop
 }

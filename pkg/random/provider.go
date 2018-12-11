@@ -28,3 +28,8 @@ type Result = common.ProviderResult
 // Arguments for random generate
 type Arguments struct {
 }
+
+const (
+	// LabelIdentify for identify label key
+	LabelIdentify = "identify"
+)

@@ -45,7 +45,7 @@ func (p *uuidProvider) Next(arg *random.Arguments) (*random.Result, error) {
 	r := &random.Result{
 		Name: ProviderName,
 		Labels: map[string]string{
-			"identify": identify,
+			random.LabelIdentify: identify,
 		},
 		Next: h.Sum64(),
 	}
