@@ -59,6 +59,28 @@ func Main() {
 		return
 	}
 
+	if *isDebug {
+		logger.SetLogLevel(logger.DebugLevel)
+	}
+
+	snowflakeProvider, err := buildSnowflakeProvider(*snowflakeProviderName, *snowflakeProviderArgs)
+	if err != nil {
+		logger.Errorf("build snowflake provider[name=%s][args=%s] failed, %v", *snowflakeProviderName, *snowflakeProviderArgs, err)
+		return
+	}
+
+	segmentProvider, err := buildSegmentProvider(*segmentProviderName, *segmentProviderArgs)
+	if err != nil {
+		logger.Errorf("build segment provider[name=%s][args=%s] failed, %v", *segmentProviderName, *segmentProviderArgs, err)
+		return
+	}
+
+	randomProvider, err := buildRandomProvider(*randomProviderName, *randomProviderArgs)
+	if err != nil {
+		logger.Errorf("build random provider[name=%s][args=%s] failed, %v", *randomProviderName, *randomProviderArgs, err)
+		return
+	}
+
 	clientURL, err := url.Parse(*listenClientURL)
 	if err != nil {
 		logger.Errorf("%s is not valid url: %v", *listenClientURL, err)
@@ -74,14 +96,7 @@ func Main() {
 		IsClientCertAuthEnable: *isClientCertAuthEnable,
 		IsInsecureSkipVerify:   *isInsecureSkipVerify,
 		ClientCrlFile:          *clientCrlFile,
-		IsDebug:                *isDebug,
 		IsPprof:                *isPprof,
-		RandomProvider:         *randomProviderName,
-		RandomProviderArgs:     *randomProviderArgs,
-		SnowflakeProvider:      *snowflakeProviderName,
-		SnowflakeProviderArgs:  *snowflakeProviderArgs,
-		SegmentProvider:        *segmentProviderName,
-		SegmentProviderArgs:    *segmentProviderArgs,
 	}
 	srv, err := server.NewServer(option)
 	if err != nil {
@@ -89,11 +104,26 @@ func Main() {
 		return
 	}
 
-	stop, err := srv.Start()
+	installer := server.NewInstallers(
+		&versionService{},
+		&snowflakeService{
+			provider: snowflakeProvider,
+		},
+		&segmentService{
+			provider: segmentProvider,
+		},
+		&randomService{
+			provider: randomProvider,
+		},
+	)
+
+	stop := make(chan struct{})
+	err = srv.Start(installer, stop)
 	if err != nil {
 		logger.Errorf("Server Start failed: %v", err)
 		return
 	}
 
 	<-stop
+	logger.Infof("Server stop, exit")
 }

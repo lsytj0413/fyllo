@@ -22,25 +22,50 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
-	"os/signal"
-	"time"
 
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/lsytj0413/ena/logger"
-
-	"github.com/lsytj0413/fyllo/pkg/random"
-	randomBuilder "github.com/lsytj0413/fyllo/pkg/random/builder"
-	"github.com/lsytj0413/fyllo/pkg/segment"
-	segmentBuilder "github.com/lsytj0413/fyllo/pkg/segment/builder"
-	"github.com/lsytj0413/fyllo/pkg/snowflake"
-	snowflakeBuilder "github.com/lsytj0413/fyllo/pkg/snowflake/builder"
 )
 
 // Server is fyllo server interface
 type Server interface {
-	Start() (chan struct{}, error)
+	Options() *Options
+	Start(api Installer, stop chan struct{}) error
+	Shutdown(ctx context.Context) error
+}
+
+// Installer for install api
+type Installer interface {
+	Install(engine *gin.Engine) error
+}
+
+type fnInstaller struct {
+	fn func(*gin.Engine) error
+}
+
+func (i *fnInstaller) Install(engine *gin.Engine) error {
+	return i.fn(engine)
+}
+
+// NewInstallerFunction return Installer from function
+func NewInstallerFunction(f func(*gin.Engine) error) Installer {
+	return &fnInstaller{
+		fn: f,
+	}
+}
+
+// NewInstallers combain multi installer
+func NewInstallers(installers ...Installer) Installer {
+	return NewInstallerFunction(func(engine *gin.Engine) (err error) {
+		for i := 0; i < len(installers); i++ {
+			err = installers[i].Install(engine)
+			if err != nil {
+				return
+			}
+		}
+		return
+	})
 }
 
 // Options for server option
@@ -53,38 +78,24 @@ type Options struct {
 	IsClientCertAuthEnable bool     `json:"isClientCertAuthEnable"`
 	IsInsecureSkipVerify   bool     `json:"isInsecureSkipVerify"`
 	ClientCrlFile          string   `json:"clientCrlFile"`
-	IsDebug                bool     `json:"isDebug"`
 	IsPprof                bool     `json:"isPprof"`
-	IsTLSEnable            bool
 
-	RandomProvider     string `json:"randomProvider"`
-	RandomProviderArgs string `json:"randomProviderArgs"`
-
-	SegmentProvider     string `json:"segmentProvider"`
-	SegmentProviderArgs string `json:"segmentProviderArgs"`
-
-	SnowflakeProvider     string `json:"snowflakeProvider"`
-	SnowflakeProviderArgs string `json:"snowflakeProviderArgs"`
+	IsTLSEnable bool `json:"isTLSEnable"` // auto filled by ListenClientURL
 }
 
 type server struct {
 	option *Options
-
-	randomProvider    random.Provider
-	segmentProvider   segment.Provider
-	snowflakeProvider snowflake.Provider
-
-	stop chan struct{}
+	srv    *http.Server
 }
 
-func (s *server) Start() (chan struct{}, error) {
-	if s.option.IsDebug {
-		logger.SetLogLevel(logger.DebugLevel)
-	}
+func (s *server) Options() *Options {
+	return s.option
+}
 
+func (s *server) Start(api Installer, stop chan struct{}) error {
 	if s.option.ListenClientURL.Scheme == "https" {
 		if s.option.ClientCertFile == "" || s.option.ClientKeyFile == "" {
-			return nil, fmt.Errorf("listen on https without keyfile or certfile exists")
+			return fmt.Errorf("listen on https without keyfile or certfile exists")
 		}
 
 		s.option.IsTLSEnable = true
@@ -92,7 +103,7 @@ func (s *server) Start() (chan struct{}, error) {
 
 	if s.option.IsClientCertAuthEnable {
 		if s.option.ClientTrustedCAFile == "" && !s.option.IsInsecureSkipVerify {
-			return nil, fmt.Errorf("client auth enable without client-trusted-ca-file or client-auto-tls set")
+			return fmt.Errorf("client auth enable without client-trusted-ca-file or client-auto-tls set")
 		}
 	}
 
@@ -105,7 +116,7 @@ func (s *server) Start() (chan struct{}, error) {
 			pool := x509.NewCertPool()
 			caCrt, err := ioutil.ReadFile(s.option.ClientTrustedCAFile)
 			if err != nil {
-				return nil, fmt.Errorf("client auth cafile read error: %s", err.Error())
+				return fmt.Errorf("client auth cafile read error: %s", err.Error())
 			}
 
 			pool.AppendCertsFromPEM(caCrt)
@@ -117,7 +128,7 @@ func (s *server) Start() (chan struct{}, error) {
 		logger.Infof("ignore client crlfile: %s", s.option.ClientCertFile)
 	}
 
-	srv := &http.Server{
+	s.srv = &http.Server{
 		Addr:      s.option.ListenClientURL.Hostname() + ":" + s.option.ListenClientURL.Port(),
 		TLSConfig: tlsConfig,
 	}
@@ -126,110 +137,50 @@ func (s *server) Start() (chan struct{}, error) {
 	if s.option.IsPprof {
 		pprof.Register(r, nil)
 	}
+	err := api.Install(r)
+	if err != nil {
+		return err
+	}
 
-	srv.Handler = r
+	s.srv.Handler = r
 
-	ch := make(chan error, 1)
-	go func() {
-		var err error
-		if s.option.IsTLSEnable {
-			logger.Infof("Listening and serving HTTPS on %s", srv.Addr)
-			err = srv.ListenAndServeTLS(s.option.ClientCertFile, s.option.ClientKeyFile)
-		} else {
-			logger.Infof("Listening and serving HTTP on %s", srv.Addr)
-			err = srv.ListenAndServe()
-		}
+	if s.option.IsTLSEnable {
+		logger.Infof("Listening and serving HTTPS on %s", s.srv.Addr)
+		err = s.srv.ListenAndServeTLS(s.option.ClientCertFile, s.option.ClientKeyFile)
+	} else {
+		logger.Infof("Listening and serving HTTP on %s", s.srv.Addr)
+		err = s.srv.ListenAndServe()
+	}
 
-		if err != nil && err != http.ErrServerClosed {
-			logger.Errorf("Server Start Failed: %s", err)
-			ch <- err
-		}
-	}()
+	stop <- struct{}{}
 
-	go func() {
-		quit := make(chan os.Signal)
-		signal.Notify(quit, os.Interrupt)
+	if err != nil && err != http.ErrServerClosed {
+		return err
+	}
+	return nil
+}
 
-		var err error
-		select {
-		case <-quit:
-		case err = <-ch:
-		}
-
-		// Close on signal
-		if err == nil {
-			logger.Infof("Shutdown Server ...")
-
-			ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-			defer cancel()
-
-			if err := srv.Shutdown(ctx); err != nil {
-				logger.Errorf("Server Shutdown: %v", err)
-			}
-		}
-
-		s.stop <- struct{}{}
-	}()
-
-	return s.stop, nil
+func (s *server) Shutdown(ctx context.Context) error {
+	return s.srv.Shutdown(ctx)
 }
 
 // NewServer return Server
 func NewServer(option *Options) (Server, error) {
-	randomProvider, err := buildRandomProvider(option)
-	if err != nil {
-		return nil, err
+	if option.ListenClientURL.Scheme == "https" {
+		if option.ClientCertFile == "" || option.ClientKeyFile == "" {
+			return nil, fmt.Errorf("listen on https without keyfile or certfile exists")
+		}
+
+		option.IsTLSEnable = true
 	}
-	segmentProvider, err := buildSegmentProvider(option)
-	if err != nil {
-		return nil, err
-	}
-	snowflakeProvider, err := buildSnowflakeProvider(option)
-	if err != nil {
-		return nil, err
+
+	if option.IsClientCertAuthEnable {
+		if option.ClientTrustedCAFile == "" && !option.IsInsecureSkipVerify {
+			return nil, fmt.Errorf("client auth enable without client-trusted-ca-file or client-auto-tls set")
+		}
 	}
 
 	return &server{
-		option:            option,
-		randomProvider:    randomProvider,
-		segmentProvider:   segmentProvider,
-		snowflakeProvider: snowflakeProvider,
-		stop:              make(chan struct{}),
+		option: option,
 	}, nil
-}
-
-func buildRandomProvider(option *Options) (random.Provider, error) {
-	builder, err := randomBuilder.NewBuilder(&randomBuilder.Options{
-		ProviderName: option.RandomProvider,
-		ProviderArgs: option.RandomProviderArgs,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return builder.Build()
-}
-
-func buildSnowflakeProvider(option *Options) (snowflake.Provider, error) {
-	builder, err := snowflakeBuilder.NewBuilder(&snowflakeBuilder.Options{
-		ProviderName: option.SnowflakeProvider,
-		ProviderArgs: option.SnowflakeProviderArgs,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return builder.Build()
-}
-
-func buildSegmentProvider(option *Options) (segment.Provider, error) {
-	builder, err := segmentBuilder.NewBuilder(&segmentBuilder.Options{
-		ProviderName: option.SegmentProvider,
-		ProviderArgs: option.SegmentProviderArgs,
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	return builder.Build()
 }
