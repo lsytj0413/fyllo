@@ -117,7 +117,7 @@ func Main() {
 		},
 	)
 
-	stop := make(chan struct{})
+	stop := make(chan struct{}, 1)
 	err = srv.Start(installer, stop)
 	if err != nil {
 		logger.Errorf("Server Start failed: %v", err)

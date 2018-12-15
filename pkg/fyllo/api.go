@@ -20,13 +20,25 @@ import (
 	"github.com/lsytj0413/fyllo/pkg/random"
 	"github.com/lsytj0413/fyllo/pkg/segment"
 	"github.com/lsytj0413/fyllo/pkg/snowflake"
+	"github.com/lsytj0413/fyllo/pkg/version"
 )
 
 type versionService struct {
 }
 
 func (s *versionService) Install(engine *gin.Engine) error {
+	engine.Use(errorMiddleware()).Use(logMiddleware()).Use(jsonRespMiddleware())
+	engine.GET("/version", wrapperHandler(s.Version))
 	return nil
+}
+
+func (s *versionService) Version(c *gin.Context) (interface{}, error) {
+	return map[string]string{
+		"Version":     version.Version,
+		"Commit":      version.Commit,
+		"Name":        "fyllo",
+		"Description": "A distributed, unique ID generation service.",
+	}, nil
 }
 
 type snowflakeService struct {
