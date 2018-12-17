@@ -46,7 +46,7 @@ func (s *sequencer) Next() (sequenceNumber uint64, timestamp uint64, err error) 
 		return
 	}
 
-	sequenceNumber = atomic.AddUint64(&s.now, 1)
+	sequenceNumber = atomic.AddUint64(&s.now, 1) - 1
 	timestamp = s.lastTick
 	return
 }
