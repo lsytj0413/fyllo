@@ -40,17 +40,17 @@ type Installer interface {
 	Install(engine *gin.Engine) error
 }
 
-type fnInstaller struct {
+type funcInstaller struct {
 	fn func(*gin.Engine) error
 }
 
-func (i *fnInstaller) Install(engine *gin.Engine) error {
+func (i *funcInstaller) Install(engine *gin.Engine) error {
 	return i.fn(engine)
 }
 
 // NewInstallerFunction return Installer from function
 func NewInstallerFunction(f func(*gin.Engine) error) Installer {
-	return &fnInstaller{
+	return &funcInstaller{
 		fn: f,
 	}
 }
