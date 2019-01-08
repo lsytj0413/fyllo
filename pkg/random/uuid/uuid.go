@@ -15,10 +15,9 @@
 package uuid
 
 import (
-	"hash/fnv"
-
 	gouuid "github.com/satori/go.uuid"
 
+	"github.com/lsytj0413/ena/algo/hash"
 	"github.com/lsytj0413/fyllo/pkg/random"
 )
 
@@ -36,18 +35,13 @@ func (p *uuidProvider) Name() string {
 
 func (p *uuidProvider) Next(arg *random.Arguments) (*random.Result, error) {
 	identify := gouuid.NewV4().String()
-	h := fnv.New64a()
-	_, err := h.Write([]byte(identify))
-	if err != nil {
-		return nil, err
-	}
 
 	r := &random.Result{
 		Name: ProviderName,
 		Labels: map[string]string{
 			random.LabelIdentify: identify,
 		},
-		Next: h.Sum64(),
+		Next: hash.Uint64([]byte(identify)),
 	}
 	return r, nil
 }
