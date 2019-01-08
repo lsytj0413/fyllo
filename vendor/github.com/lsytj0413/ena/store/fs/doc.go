@@ -13,4 +13,5 @@
 // limitations under the License.
 
 // Package fs defines in-memory kv store behavior as filesystem
+// from: etcd v2.store
 package fs

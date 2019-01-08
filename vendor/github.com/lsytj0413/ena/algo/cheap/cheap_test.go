@@ -17,6 +17,7 @@ package cheap
 import (
 	"fmt"
 	"testing"
+	"unsafe"
 
 	"github.com/stretchr/testify/suite"
 )
@@ -40,7 +41,7 @@ func less(v1 Interface, v2 Interface) bool {
 }
 
 func (i *item) Id() uint64 {
-	return i.id
+	return pointerToUint64(i)
 }
 
 func newItem(id uint64, priority uint64) *item {
@@ -50,16 +51,35 @@ func newItem(id uint64, priority uint64) *item {
 	}
 }
 
+func pointerToUint64(i *item) uint64 {
+	return uint64(uintptr(unsafe.Pointer(i)))
+}
+
 func (s *cheapTestSuite) SetupTest() {
 	s.h = NewHeap(less)
 }
 
+func (s *cheapTestSuite) TestIdByPointer() {
+	i := newItem(0, 0)
+	p1 := pointerToUint64(i)
+	p2 := i.Id()
+
+	s.Equal(p1, p2)
+}
+
 func (s *cheapTestSuite) TestTopOk() {
-	s.h.PushX(newItem(1, 2))
-	s.h.PushX(newItem(0, 0))
+	item1 := newItem(1, 2)
+	id1 := pointerToUint64(item1)
+	_ = id1
+
+	item2 := newItem(0, 0)
+	id2 := pointerToUint64(item2)
+
+	s.h.PushX(item1)
+	s.h.PushX(item2)
 
 	x := (s.h.Top()).(Interface)
-	s.Equal(uint64(0), x.Id())
+	s.Equal(id2, x.Id())
 }
 
 func (s *cheapTestSuite) TestTopNil() {
@@ -68,14 +88,22 @@ func (s *cheapTestSuite) TestTopNil() {
 }
 
 func (s *cheapTestSuite) TestPopXOk() {
-	s.h.PushX(newItem(1, 2))
-	s.h.PushX(newItem(0, 0))
+	item1 := newItem(1, 2)
+	id1 := pointerToUint64(item1)
+	_ = id1
+
+	item2 := newItem(0, 0)
+	id2 := pointerToUint64(item2)
+	_ = id2
+
+	s.h.PushX(item1)
+	s.h.PushX(item2)
 
 	x := (s.h.PopX()).(Interface)
-	s.Equal(uint64(0), x.Id())
+	s.Equal(id2, x.Id())
 
 	x = (s.h.PopX()).(Interface)
-	s.Equal(uint64(1), x.Id())
+	s.Equal(id1, x.Id())
 }
 
 func (s *cheapTestSuite) TestPopXNil() {
@@ -99,8 +127,16 @@ func (s *cheapTestSuite) TestPushXExists() {
 }
 
 func (s *cheapTestSuite) TestUpdateOk() {
-	s.h.PushX(newItem(1, 2))
-	s.h.PushX(newItem(0, 0))
+	item1 := newItem(1, 2)
+	id1 := pointerToUint64(item1)
+	_ = id1
+
+	item2 := newItem(0, 0)
+	id2 := pointerToUint64(item2)
+	_ = id2
+
+	s.h.PushX(item1)
+	s.h.PushX(item2)
 
 	x := (s.h.Top()).(*item)
 	x.priority = 3
@@ -109,7 +145,7 @@ func (s *cheapTestSuite) TestUpdateOk() {
 	s.Nil(err)
 
 	y := (s.h.Top()).(Interface)
-	s.Equal(uint64(1), y.Id())
+	s.Equal(id1, y.Id())
 }
 
 func (s *cheapTestSuite) TestUpdateFail() {
@@ -123,8 +159,16 @@ func (s *cheapTestSuite) TestUpdateFail() {
 }
 
 func (s *cheapTestSuite) TestRemoveOK() {
-	s.h.PushX(newItem(1, 2))
-	s.h.PushX(newItem(0, 0))
+	item1 := newItem(1, 2)
+	id1 := pointerToUint64(item1)
+	_ = id1
+
+	item2 := newItem(0, 0)
+	id2 := pointerToUint64(item2)
+	_ = id2
+
+	s.h.PushX(item1)
+	s.h.PushX(item2)
 
 	x := (s.h.Top()).(*item)
 
@@ -132,7 +176,7 @@ func (s *cheapTestSuite) TestRemoveOK() {
 	s.NoError(err)
 
 	y := (s.h.Top()).(Interface)
-	s.Equal(uint64(1), y.Id())
+	s.Equal(id1, y.Id())
 }
 
 func (s *cheapTestSuite) TestRemoveNotExists() {

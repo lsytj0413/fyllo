@@ -43,6 +43,20 @@ func (e Error) Error() string {
 	return e.Message + " (" + e.Cause + ")"
 }
 
+// Is check the ErrorCode is equal
+func (e Error) Is(errorCode int) bool {
+	return e.ErrorCode == errorCode
+}
+
+// Is check is errorCode and error type
+func Is(err error, errorCode int) bool {
+	if e, ok := err.(*Error); ok && e.Is(errorCode) {
+		return true
+	}
+
+	return false
+}
+
 var (
 	// For unittest
 	marshal func(interface{}) ([]byte, error)

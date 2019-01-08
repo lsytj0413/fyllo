@@ -16,44 +16,10 @@
 package logger
 
 import (
-	"fmt"
 	"os"
-	"path"
-	"runtime"
-	"strings"
 
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
-
-type contextHook struct {
-}
-
-func (contextHook) Levels() []logrus.Level {
-	return logrus.AllLevels
-}
-
-func (contextHook) Fire(entry *logrus.Entry) error {
-	entry.Data["file"] = "unknown:unknown:0"
-
-	pc := make([]uintptr, 3, 3)
-	cnt := runtime.Callers(7, pc)
-	found := false
-	for i := 0; i < cnt; i++ {
-		fu := runtime.FuncForPC(pc[i] - 1)
-		name := fu.Name()
-		if !strings.Contains(name, "github.com/Sirupsen/logrus") && !found {
-			found = true
-			continue
-		}
-		if found {
-			file, line := fu.FileLine(pc[i] - 1)
-			entry.Data["file"] = fmt.Sprintf("%v:%v:%v", path.Base(file), path.Base(name), line)
-			break
-		}
-	}
-
-	return nil
-}
 
 var log = logrus.New()
 
@@ -82,56 +48,6 @@ func Criticalf(format string, args ...interface{}) {
 	log.Fatalf(format, args...)
 }
 
-// Debug logs DEBUG level to Dest Output
-func Debug(args ...interface{}) {
-	log.Debug(args...)
-}
-
-// Info logs INFO level to Dest Output
-func Info(args ...interface{}) {
-	log.Info(args...)
-}
-
-// Warn logs WARN level to Dest Output
-func Warn(args ...interface{}) {
-	log.Warn(args...)
-}
-
-// Error logs ERROR level to Dest Output
-func Error(args ...interface{}) {
-	log.Error(args...)
-}
-
-// Critical logs Critical level to Dest Output
-func Critical(args ...interface{}) {
-	log.Fatal(args...)
-}
-
-// Debugln logs DEBUG level to Dest Output
-func Debugln(args ...interface{}) {
-	log.Debugln(args...)
-}
-
-// Infoln logs INFO level to Dest Output
-func Infoln(args ...interface{}) {
-	log.Infoln(args...)
-}
-
-// Warnln logs WARN level to Dest Output
-func Warnln(args ...interface{}) {
-	log.Warnln(args...)
-}
-
-// Errorln logs ERROR level to Dest Output
-func Errorln(args ...interface{}) {
-	log.Errorln(args...)
-}
-
-// Criticalln logs Critical level to Dest Output
-func Criticalln(args ...interface{}) {
-	log.Fatalln(args...)
-}
-
 // SetLogLevel changes logger.Level, the default logger.Level is InfoLevel
 func SetLogLevel(v LogLevel) {
 	switch v {
@@ -150,13 +66,26 @@ func SetLogLevel(v LogLevel) {
 	}
 }
 
+// SetLogPattern set logger pattern string
+func SetLogPattern(pattern string) error {
+	formatter, err := NewLayoutFormatter(pattern)
+	if err != nil {
+		return err
+	}
+
+	isCallerEnable = hasCallerField(formatter.c)
+	log.Formatter = formatter
+	return nil
+}
+
+var (
+	isCallerEnable = true
+)
+
 func init() {
 	log.Out = os.Stdout
 	log.Level = logrus.InfoLevel
-	log.AddHook(contextHook{})
+	log.AddHook(callerHook{})
 
-	formatter := logrus.TextFormatter{DisableTimestamp: false,
-		FullTimestamp:   true,
-		TimestampFormat: "2006-01-02T15:04:05.000000000Z07:00"}
-	log.Formatter = &formatter
+	SetLogPattern("[%d] [%level] [%P:%F:%M:%L] %msg\n")
 }

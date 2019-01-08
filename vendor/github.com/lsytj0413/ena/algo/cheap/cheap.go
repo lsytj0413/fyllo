@@ -125,10 +125,6 @@ func (h *defHeap) PushX(x Interface) error {
 func (h *defHeap) Update(n Interface) error {
 	index, ok := h.keyMap[n.Id()]
 	if ok {
-		// heap.Remove(h, index)
-		// heap.Push(h, n)
-
-		// use heap.Fix
 		heap.Fix(h, index)
 		return nil
 	}

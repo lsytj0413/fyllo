@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// +build !windows,!plan9
+
 // Package atexit provide a way to run Handler at process exit
 package atexit
 
@@ -108,6 +110,7 @@ func HandleInterrupts() {
 		signal.Stop(notifier)
 		pid := syscall.Getpid()
 
+		// exit directly if it is the "init" process, since the kernel will not help to kill pid 1.
 		if pid == 1 {
 			os.Exit(0)
 		}

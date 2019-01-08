@@ -21,7 +21,7 @@ import (
 	"github.com/stretchr/testify/suite"
 )
 
-type errorHttpTestSuite struct {
+type errorHTTPTestSuite struct {
 	suite.Suite
 }
 
@@ -30,15 +30,15 @@ var templateStatus = map[int]int{
 	200: 200,
 }
 
-func (s *errorHttpTestSuite) SetupTest() {
+func (s *errorHTTPTestSuite) SetupTest() {
 	errorsStatus = templateStatus
 }
 
-func (s *errorHttpTestSuite) TearDownTest() {
+func (s *errorHTTPTestSuite) TearDownTest() {
 	errorsStatus = map[int]int{}
 }
 
-func (s *errorHttpTestSuite) TestStatusCodeFind() {
+func (s *errorHTTPTestSuite) TestStatusCodeFind() {
 	for k, v := range templateStatus {
 		e := NewRequestError(k, "")
 		v1 := e.StatusCode()
@@ -47,14 +47,14 @@ func (s *errorHttpTestSuite) TestStatusCodeFind() {
 	}
 }
 
-func (s *errorHttpTestSuite) TestStatusCodeNotFind() {
+func (s *errorHTTPTestSuite) TestStatusCodeNotFind() {
 	e := NewRequestError(9932121, "")
 	v := e.StatusCode()
 
 	s.Equal(http.StatusBadRequest, v)
 }
 
-func (s *errorHttpTestSuite) TestSetErrorStatusOK() {
+func (s *errorHTTPTestSuite) TestSetErrorStatusOK() {
 	errorsStatus = map[int]int{}
 	SetErrorsStatus(templateStatus)
 
@@ -64,6 +64,29 @@ func (s *errorHttpTestSuite) TestSetErrorStatusOK() {
 		s.True(ok)
 		s.Equal(v, v1)
 	}
+}
+
+type fakeWriter struct {
+	header int
+	body   []byte
+}
+
+func (f *fakeWriter) WriteHeader(v int) {
+	f.header = v
+}
+
+func (f *fakeWriter) Write(b []byte) (int, error) {
+	f.body = b
+	return 0, nil
+}
+func (s *errorHTTPTestSuite) TestWriteToOk() {
+	err := NewError(0, "cause")
+	w := &fakeWriter{}
+
+	err.WriteTo(w)
+
+	s.Equal(err.StatusCode(), w.header)
+	s.Equal(err.JSONString()+"\n", string(w.body))
 }
 
 func (s *errorTestSuite) TestSetErrorStatusReplace() {
@@ -95,6 +118,6 @@ func (s *errorTestSuite) TestSetErrorStatusReplace() {
 }
 
 func TestErrorHttpTestSuite(t *testing.T) {
-	s := &errorHttpTestSuite{}
+	s := &errorHTTPTestSuite{}
 	suite.Run(t, s)
 }

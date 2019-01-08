@@ -19,6 +19,7 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"sync/atomic"
 )
 
 // WatcherHub is interface define for Watcher module
@@ -29,26 +30,56 @@ type WatcherHub interface {
 
 // watcherHub contains all subscribed watchers
 type watcherHub struct {
-	count uint64 // current number of watchers
+	sync.Mutex
 
-	mutex         sync.Mutex
-	watchers      map[string]*list.List
-	resultHistory *ResultHistory
+	count    int64 // current number of watchers
+	watchers map[string]*list.List
 }
 
 func newWatchHub(capacity int) WatcherHub {
 	return &watcherHub{
-		watchers:      make(map[string]*list.List),
-		resultHistory: newResultHistory(capacity),
+		watchers: make(map[string]*list.List),
 	}
 }
 
+// watch function returns a Watcher
+// if recursive is true, the first change under key will be sent to the event channel of the watcher
+// if recursive is false, the first change at key will be sent to the event channel of the watcher
 func (h *watcherHub) watch(key string, recursive bool) (Watcher, error) {
-	return nil, nil
+	w := &defWatcher{
+		resultChan: make(chan *Result, 100),
+		recursive:  recursive,
+		stream:     true,
+		hub:        h,
+	}
+	h.Lock()
+	defer h.Unlock()
+
+	l, ok := h.watchers[key]
+	if !ok {
+		l = list.New()
+		h.watchers[key] = l
+	}
+	elem := l.PushBack(w)
+
+	w.remove = func() {
+		if w.removed {
+			return
+		}
+
+		w.removed = true
+		l.Remove(elem)
+		atomic.AddInt64(&h.count, -1)
+		if l.Len() == 0 {
+			delete(h.watchers, key)
+		}
+	}
+	atomic.AddInt64(&h.count, 1)
+	return w, nil
 }
 
 func (h *watcherHub) add(r *Result) {
-	h.resultHistory.addResult(r)
+	// h.resultHistory.addResult(r)
 }
 
 func (h *watcherHub) notify(r *Result) {
@@ -63,8 +94,8 @@ func (h *watcherHub) notify(r *Result) {
 }
 
 func (h *watcherHub) notifyWatchers(r *Result, nodePath string, deleted bool) {
-	h.mutex.Lock()
-	defer h.mutex.Unlock()
+	h.Lock()
+	defer h.Unlock()
 
 	watchers, ok := h.watchers[nodePath]
 	if ok {
@@ -76,7 +107,6 @@ func (h *watcherHub) notifyWatchers(r *Result, nodePath string, deleted bool) {
 			originalPath := (r.CurrNode.Key == nodePath)
 			if (originalPath || !isHidden(nodePath, r.CurrNode.Key)) &&
 				w.notify(r, originalPath, deleted) {
-
 			}
 
 			curr = next

@@ -42,7 +42,7 @@ type Writer interface {
 }
 
 // WriteTo write error message to http response
-func (e Error) WriteTo(w http.ResponseWriter) error {
+func (e Error) WriteTo(w Writer) error {
 	w.WriteHeader(e.StatusCode())
 	_, err := w.Write([]byte(e.JSONString() + "\n"))
 	return err

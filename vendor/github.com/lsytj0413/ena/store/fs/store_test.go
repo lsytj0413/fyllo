@@ -100,7 +100,7 @@ func (s *defFileSystemStoreTestSuite) TestDeleteOk() {
 	s.Equal("xxx", *(r.CurrNode.Value))
 }
 
-func TestStoreTestSuite(t *testing.T) {
+func TestDefFilesystemStoreTestSuite(t *testing.T) {
 	s := &defFileSystemStoreTestSuite{}
 	suite.Run(t, s)
 }

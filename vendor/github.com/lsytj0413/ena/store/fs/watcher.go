@@ -16,12 +16,12 @@ package fs
 
 // Watcher defines a interface for notice the store operate Result
 type Watcher interface {
-	ResultChan() chan *Result
+	ResultChan() <-chan *Result
 	Remove()
 	notify(*Result, bool, bool) bool
 }
 
-type defaultWatcher struct {
+type defWatcher struct {
 	resultChan chan *Result
 	stream     bool
 	recursive  bool
@@ -31,13 +31,13 @@ type defaultWatcher struct {
 	remove  func()
 }
 
-func (w *defaultWatcher) ResultChan() chan *Result {
+func (w *defWatcher) ResultChan() <-chan *Result {
 	return w.resultChan
 }
 
-func (w *defaultWatcher) Remove() {
-	w.hub.mutex.Lock()
-	defer w.hub.mutex.Unlock()
+func (w *defWatcher) Remove() {
+	w.hub.Lock()
+	defer w.hub.Unlock()
 
 	close(w.resultChan)
 	if w.remove != nil {
@@ -47,7 +47,7 @@ func (w *defaultWatcher) Remove() {
 
 // notify function notifies the watcher. If the watcher interests in the given path,
 // the function will return true
-func (w *defaultWatcher) notify(r *Result, originalPath bool, deleted bool) bool {
+func (w *defWatcher) notify(r *Result, originalPath bool, deleted bool) bool {
 	// watcher is interested the path in three cases and under one condition
 	// the condition is that the event happens after the warcher's sinceIndex
 

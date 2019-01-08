@@ -47,6 +47,9 @@ func NewError(errorCode int, cause string) *cerror.Error {
 	return cerror.NewError(errorCode, cause)
 }
 
+// Is check the error type and errorCode
+var Is = cerror.Is
+
 func init() {
 	cerror.SetErrorsMessage(errorsMessage)
 }

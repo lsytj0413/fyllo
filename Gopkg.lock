@@ -2,16 +2,10 @@
 
 
 [[projects]]
-  name = "github.com/Sirupsen/logrus"
-  packages = ["."]
-  revision = "bcd833dfe83d3cebad139e4a29ed79cb2318bf95"
-  version = "v1.2.0"
-
-[[projects]]
   name = "github.com/davecgh/go-spew"
   packages = ["spew"]
-  revision = "346938d642f2ec3594ed81d874461961cd0faa76"
-  version = "v1.1.0"
+  revision = "8991bc29aa16c548c550c7ff78260e27b9ab7c73"
+  version = "v1.1.1"
 
 [[projects]]
   name = "github.com/gin-contrib/pprof"
@@ -59,9 +53,10 @@
   name = "github.com/lsytj0413/ena"
   packages = [
     "cerror",
-    "logger"
+    "logger",
+    "logger/convert"
   ]
-  revision = "9eed96d957cef25892b936ce3d3702e626bb2517"
+  revision = "9b6d1e691699f824a21c2816cfbbc48ffcc6c11f"
 
 [[projects]]
   name = "github.com/mattn/go-isatty"
@@ -94,14 +89,20 @@
   version = "v1.2.0"
 
 [[projects]]
+  name = "github.com/sirupsen/logrus"
+  packages = ["."]
+  revision = "e1e72e9de974bd926e5c56f83753fba2df402ce5"
+  version = "v1.3.0"
+
+[[projects]]
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
     "require",
     "suite"
   ]
-  revision = "12b6f73e6084dad08a7c6e575284b177ecafbc71"
-  version = "v1.2.1"
+  revision = "ffdc059bfe9ce6a4e144ba849dbedead332c6053"
+  version = "v1.3.0"
 
 [[projects]]
   name = "github.com/ugorji/go"
@@ -113,7 +114,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
+  revision = "ff983b9c42bc9fbf91556e191cc8efb585c16908"
 
 [[projects]]
   branch = "master"
@@ -122,7 +123,7 @@
     "unix",
     "windows"
   ]
-  revision = "2a47403f2ae58167c4d75973960ccc62b28cb0d8"
+  revision = "20be8e55dc7b4b7a1b1660728164a8509d8c9209"
 
 [[projects]]
   name = "gopkg.in/go-playground/validator.v8"
