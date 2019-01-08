@@ -52,6 +52,7 @@
   branch = "master"
   name = "github.com/lsytj0413/ena"
   packages = [
+    "algo/hash",
     "cerror",
     "logger",
     "logger/convert"
@@ -140,6 +141,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f39ad8304b73b804fa163a86384b94172573e7a9a9690c0aa25aaf6f4bdab63c"
+  inputs-digest = "c1d054b9772b9d2b31349e5b26a2461d6a327ef5121a88650869540fb7cd28b2"
   solver-name = "gps-cdcl"
   solver-version = 1
