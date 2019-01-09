@@ -20,6 +20,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	ierror "github.com/lsytj0413/fyllo/pkg/error"
 	"github.com/lsytj0413/fyllo/pkg/random"
 	"github.com/lsytj0413/fyllo/pkg/segment"
 	"github.com/lsytj0413/fyllo/pkg/snowflake"
@@ -55,13 +56,17 @@ func (s *snowflakeService) Install(engine *gin.Engine) error {
 
 func (s *snowflakeService) Next(c *gin.Context) (interface{}, error) {
 	tag := c.Query("tag")
-	tagID, err := strconv.Atoi(tag)
+	if tag == "" {
+		return nil, ierror.NewError(ierror.EcodeRequestParam, "param tag is required")
+	}
+
+	tagID, err := strconv.ParseUint(tag, 10, 64)
 	if err != nil {
-		return nil, err
+		return nil, ierror.NewError(ierror.EcodeRequestParam, fmt.Sprintf("param tag[%s] convert to uint64 failed, %v", tag, err))
 	}
 
 	n, err := s.provider.Next(&snowflake.Arguments{
-		Tag: uint64(tagID),
+		Tag: tagID,
 	})
 	if err != nil {
 		return nil, err
@@ -98,7 +103,7 @@ func (s *segmentService) Install(engine *gin.Engine) error {
 func (s *segmentService) Next(c *gin.Context) (interface{}, error) {
 	tag := c.Query("tag")
 	if tag == "" {
-		return nil, fmt.Errorf("tag can't be empty")
+		return nil, ierror.NewError(ierror.EcodeRequestParam, "param tag is required")
 	}
 
 	n, err := s.provider.Next(&segment.Arguments{

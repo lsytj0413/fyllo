@@ -28,8 +28,8 @@ const (
 	EcodeInitFailed = 30000001
 	// EcodeNotImplement errors for system not implement
 	EcodeNotImplement = 40000001
-	// EcodePluginNotImplement errors for factory doesn't support plugin
-	EcodePluginNotImplement = 40000002
+	// EcodeProviderNotImplement errors for factory doesn't support plugin
+	EcodeProviderNotImplement = 40000002
 
 	// EcodeSequenceOutOfRange errors for sequence exhaust
 	EcodeSequenceOutOfRange = 40001001
@@ -41,13 +41,13 @@ const (
 )
 
 var errorsMessage = map[int]string{
-	EcodeRequestParam:       "Request Param Error",
-	EcodeInitFailed:         "Server Startup Failed",
-	EcodeUnknown:            "Server Unknown Error",
-	EcodeNotImplement:       "Not Implement",
-	EcodePluginNotImplement: "Plugin Not Implement",
-	EcodeSequenceOutOfRange: "Sequence Out Of Range",
-	EcodeTimestampRewind:    "Current Timestamp Less Than Last",
+	EcodeRequestParam:         "Request Param Error",
+	EcodeInitFailed:           "Server Startup Failed",
+	EcodeUnknown:              "Server Unknown Error",
+	EcodeNotImplement:         "Not Implement",
+	EcodeProviderNotImplement: "Provider Not Implement",
+	EcodeSequenceOutOfRange:   "Sequence Out Of Range",
+	EcodeTimestampRewind:      "Current Timestamp Less Than Last",
 }
 
 var errorsStatus = map[int]int{
@@ -59,19 +59,11 @@ func NewError(errorCode int, cause string) *cerror.Error {
 	return cerror.NewError(errorCode, cause)
 }
 
-// IsPluginNotImplement checks the error is EcodePluginNotImplement
-func IsPluginNotImplement(err error) bool {
-	if ce, ok := err.(*cerror.Error); ok {
-		return ce.ErrorCode == EcodePluginNotImplement
-	}
+// IsError for cerror.IsError
+var IsError = cerror.IsError
 
-	return false
-}
-
-// NewPluginNotImplement construct a PluginNotImplementError
-func NewPluginNotImplement(cause string) *cerror.Error {
-	return NewError(EcodePluginNotImplement, cause)
-}
+// Is for cerror.Is
+var Is = cerror.Is
 
 func init() {
 	cerror.SetErrorsMessage(errorsMessage)

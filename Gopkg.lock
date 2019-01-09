@@ -57,7 +57,7 @@
     "logger",
     "logger/convert"
   ]
-  revision = "9b6d1e691699f824a21c2816cfbbc48ffcc6c11f"
+  revision = "e13c2d2f81082218b99a89b7fdb730083bebb2b1"
 
 [[projects]]
   name = "github.com/mattn/go-isatty"
@@ -124,7 +124,7 @@
     "unix",
     "windows"
   ]
-  revision = "20be8e55dc7b4b7a1b1660728164a8509d8c9209"
+  revision = "7fbe1cd0fcc20051e1fcb87fbabec4a1bacaaeba"
 
 [[projects]]
   name = "gopkg.in/go-playground/validator.v8"

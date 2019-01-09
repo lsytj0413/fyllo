@@ -18,6 +18,7 @@ package cerror
 import (
 	"encoding/json"
 	"fmt"
+	"reflect"
 )
 
 // Error is store package error message define
@@ -50,11 +51,25 @@ func (e Error) Is(errorCode int) bool {
 
 // Is check is errorCode and error type
 func Is(err error, errorCode int) bool {
+	if err == nil || reflect.ValueOf(err).IsNil() {
+		return false
+	}
+
 	if e, ok := err.(*Error); ok && e.Is(errorCode) {
 		return true
 	}
 
 	return false
+}
+
+// IsError check the err is Error struct
+func IsError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	_, ok := err.(*Error)
+	return ok
 }
 
 var (

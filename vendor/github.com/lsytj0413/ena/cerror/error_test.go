@@ -17,6 +17,7 @@ package cerror
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/suite"
@@ -139,6 +140,130 @@ func (s *errorTestSuite) TestSetErrorMessageReplace() {
 		v1, ok := errorsMessage[k]
 		s.True(ok)
 		s.Equal(v, v1)
+	}
+}
+
+func (s *errorTestSuite) TestIsOk() {
+	type testCase struct {
+		description string
+		err         *Error
+		errCode     int
+		target      bool
+	}
+	testCases := []testCase{
+		{
+			description: "normal test ErrorNotFile",
+			err:         NewError(EcodeNotFile, ""),
+			errCode:     EcodeNotFile,
+			target:      true,
+		},
+		{
+			description: "normal test ErrorNotDir",
+			err:         NewError(EcodeNotDir, ""),
+			errCode:     EcodeNotDir,
+			target:      true,
+		},
+	}
+	for _, tc := range testCases {
+		actual := Is(tc.err, tc.errCode)
+		if actual != tc.target {
+			s.Failf(tc.description, "expect %v, got %v", tc.target, actual)
+		}
+	}
+}
+
+func (s *errorTestSuite) TestIsFailed() {
+	type testCase struct {
+		description string
+		err         error
+		errCode     int
+		target      bool
+	}
+	var err *Error
+	testCases := []testCase{
+		{
+			description: "ErrorCode doesn't match failed",
+			err:         NewError(EcodeNotFile, ""),
+			errCode:     EcodeNotDir,
+			target:      false,
+		},
+		{
+			description: "nil error failed",
+			err:         nil,
+			errCode:     EcodeNotDir,
+			target:      false,
+		},
+		{
+			description: "nil error value failed",
+			err:         err,
+			errCode:     EcodeNotDir,
+			target:      false,
+		},
+		{
+			description: "error type match failed",
+			err:         fmt.Errorf(""),
+			errCode:     EcodeNotDir,
+			target:      false,
+		},
+	}
+	for _, tc := range testCases {
+		actual := Is(tc.err, tc.errCode)
+		if actual != tc.target {
+			s.Failf(tc.description, "expect %v, got %v", tc.target, actual)
+		}
+	}
+}
+
+func (s *errorTestSuite) TestIsErrorOk() {
+	type testCase struct {
+		description string
+		err         error
+		target      bool
+	}
+	var err *Error
+	testCases := []testCase{
+		{
+			description: "normal test",
+			err:         NewError(EcodeDirNotEmpty, ""),
+			target:      true,
+		},
+		{
+			description: "nil error value test",
+			err:         err,
+			target:      true,
+		},
+	}
+	for _, tc := range testCases {
+		actual := IsError(tc.err)
+		if actual != tc.target {
+			s.Failf(tc.description, "expect %v, got %v", tc.target, actual)
+		}
+	}
+}
+
+func (s *errorTestSuite) TestIsErrorFailed() {
+	type testCase struct {
+		description string
+		err         error
+		target      bool
+	}
+	testCases := []testCase{
+		{
+			description: "nil error failed",
+			err:         nil,
+			target:      false,
+		},
+		{
+			description: "error type match failed",
+			err:         fmt.Errorf(""),
+			target:      false,
+		},
+	}
+	for _, tc := range testCases {
+		actual := IsError(tc.err)
+		if actual != tc.target {
+			s.Failf(tc.description, "expect %v, got %v", tc.target, actual)
+		}
 	}
 }
 
