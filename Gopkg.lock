@@ -96,9 +96,16 @@
   version = "v1.3.0"
 
 [[projects]]
+  name = "github.com/stretchr/objx"
+  packages = ["."]
+  revision = "477a77ecc69700c7cdeb1fa9e129548e1c1c393c"
+  version = "v0.1.1"
+
+[[projects]]
   name = "github.com/stretchr/testify"
   packages = [
     "assert",
+    "mock",
     "require",
     "suite"
   ]
@@ -141,6 +148,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c1d054b9772b9d2b31349e5b26a2461d6a327ef5121a88650869540fb7cd28b2"
+  inputs-digest = "1d8567759bdaa7ff6527e18ce3313afb4b8846ea45e14980e612aa52d2af6c9f"
   solver-name = "gps-cdcl"
   solver-version = 1
