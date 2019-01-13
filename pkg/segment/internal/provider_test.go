@@ -15,6 +15,7 @@
 package internal
 
 import (
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -79,6 +80,49 @@ func (s *commonProviderTestSuite) TestNewProviderOk() {
 		if !reflect.DeepEqual(item, v) {
 			s.Failf("item equal failed", "expect %v, got %v", item, v)
 		}
+	}
+}
+
+func (s *commonProviderTestSuite) TestNewProviderListFailed() {
+	errString := "List Failed"
+	mockStorager := &mockStorageObject{}
+	mockStorager.On("List").Return([]string{}, fmt.Errorf(errString))
+
+	providerName := "test"
+	p, err := NewProvider(providerName, mockStorager)
+	s.Nil(p)
+	if err.Error() != errString {
+		s.Failf("error string failed", "expect %v, got %v", errString, err)
+	}
+}
+
+func (s *commonProviderTestSuite) TestNewProviderObtainFailed() {
+	tagItems := []*TagItem{
+		{
+			Tag:         "1",
+			Max:         10,
+			Min:         1,
+			Description: "1",
+		},
+	}
+	tagNames := make([]string, 0, len(tagItems))
+	for _, item := range tagItems {
+		tagNames = append(tagNames, item.Tag)
+	}
+
+	mockStorager := &mockStorageObject{}
+	mockStorager.On("List").Return(tagNames, nil)
+	errString := "List Failed"
+	for _, item := range tagItems {
+		var nilItem *TagItem
+		mockStorager.On("Obtain", item.Tag).Return(nilItem, fmt.Errorf(errString))
+	}
+
+	providerName := "test"
+	p, err := NewProvider(providerName, mockStorager)
+	s.Nil(p)
+	if err.Error() != errString {
+		s.Failf("error string failed", "expect %v, got %v", errString, err)
 	}
 }
 
