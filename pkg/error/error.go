@@ -26,8 +26,6 @@ const (
 	EcodeRequestParam = 10000001
 	// EcodeInitFailed errors for system init error
 	EcodeInitFailed = 30000001
-	// EcodeNotImplement errors for system not implement
-	EcodeNotImplement = 40000001
 	// EcodeProviderNotImplement errors for factory doesn't support plugin
 	EcodeProviderNotImplement = 40000002
 
@@ -35,7 +33,11 @@ const (
 	EcodeSequenceOutOfRange = 40001001
 	// EcodeTimestampRewind errors for current timestamp less than last
 	EcodeTimestampRewind = 40001002
+	// EcodeSegmentRangeFailed errors for segment item failed, for example the min value bigger than max value
+	EcodeSegmentRangeFailed = 40002001
 
+	// EcodeInternalError errors for internal server error
+	EcodeInternalError = 99999998
 	// EcodeUnknown errors for unexpected server error
 	EcodeUnknown = 99999999
 )
@@ -44,10 +46,11 @@ var errorsMessage = map[int]string{
 	EcodeRequestParam:         "Request Param Error",
 	EcodeInitFailed:           "Server Startup Failed",
 	EcodeUnknown:              "Server Unknown Error",
-	EcodeNotImplement:         "Not Implement",
 	EcodeProviderNotImplement: "Provider Not Implement",
 	EcodeSequenceOutOfRange:   "Sequence Out Of Range",
 	EcodeTimestampRewind:      "Current Timestamp Less Than Last",
+	EcodeSegmentRangeFailed:   "Current Min Value Bigger Than Max Value",
+	EcodeInternalError:        "Internal Server Error",
 }
 
 var errorsStatus = map[int]int{

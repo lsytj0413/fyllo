@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"sync"
 
+	ierror "github.com/lsytj0413/fyllo/pkg/error"
 	"github.com/lsytj0413/fyllo/pkg/segment"
 )
 
@@ -60,15 +61,33 @@ func NewProvider(name string, storage Storager) (*CommonProvider, error) {
 		tags:    make(map[string]*TagItem, len(tags)),
 	}
 	for _, tag := range tags {
-		item, err := storage.Obtain(tag)
+		item, err := obtainTagNextItem(storage, tag)
 		if err != nil {
 			return nil, err
 		}
-		// TODO: check min and max
 		p.tags[tag] = item
 	}
 
 	return p, nil
+}
+
+func obtainTagNextItem(storage Storager, tag string) (*TagItem, error) {
+	item, err := storage.Obtain(tag)
+	if err != nil {
+		return nil, err
+	}
+
+	if item.Min > item.Max {
+		return nil, ierror.NewError(ierror.EcodeSegmentRangeFailed, fmt.Sprintf("min[%d] bigger than max[%d], tag[%v]", item.Min, item.Max, item.Tag))
+	}
+
+	// copy it, avoid reuse in storager
+	return &TagItem{
+		Tag:         item.Tag,
+		Min:         item.Min,
+		Max:         item.Max,
+		Description: item.Description,
+	}, nil
 }
 
 // Name implement segment.Provider Name
@@ -81,17 +100,18 @@ func (p *CommonProvider) Next(arg *segment.Arguments) (*segment.Result, error) {
 	p.mutex.Lock()
 	defer p.mutex.Unlock()
 
+	if arg == nil {
+		return nil, ierror.NewError(ierror.EcodeInternalError, "Argument Values is Nil")
+	}
+
 	item, ok := p.tags[arg.Tag]
 	if !ok || item.Min > item.Max {
 		var err error
-		item, err = p.storage.Obtain(arg.Tag)
+		item, err = obtainTagNextItem(p.storage, arg.Tag)
 		if err != nil {
 			return nil, err
 		}
 
-		if item.Min > item.Max {
-			return nil, fmt.Errorf("min >= max")
-		}
 		p.tags[arg.Tag] = item
 	}
 

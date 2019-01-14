@@ -19,26 +19,14 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/suite"
+
+	ierror "github.com/lsytj0413/fyllo/pkg/error"
+	"github.com/lsytj0413/fyllo/pkg/segment"
 )
 
 type commonProviderTestSuite struct {
 	suite.Suite
-}
-
-type mockStorageObject struct {
-	mock.Mock
-}
-
-func (m *mockStorageObject) List() ([]string, error) {
-	args := m.Called()
-	return args.Get(0).([]string), args.Error(1)
-}
-
-func (m *mockStorageObject) Obtain(tag string) (*TagItem, error) {
-	args := m.Called(tag)
-	return args.Get(0).(*TagItem), args.Error(1)
 }
 
 func (s *commonProviderTestSuite) TestNewProviderOk() {
@@ -56,16 +44,7 @@ func (s *commonProviderTestSuite) TestNewProviderOk() {
 			Description: "2",
 		},
 	}
-	tagNames := make([]string, 0, len(tagItems))
-	for _, item := range tagItems {
-		tagNames = append(tagNames, item.Tag)
-	}
-
-	mockStorager := &mockStorageObject{}
-	mockStorager.On("List").Return(tagNames, nil)
-	for _, item := range tagItems {
-		mockStorager.On("Obtain", item.Tag).Return(item, nil)
-	}
+	mockStorager := newMockStorager(tagItems)
 
 	providerName := "test"
 	p, err := NewProvider(providerName, mockStorager)
@@ -105,24 +84,230 @@ func (s *commonProviderTestSuite) TestNewProviderObtainFailed() {
 			Description: "1",
 		},
 	}
-	tagNames := make([]string, 0, len(tagItems))
-	for _, item := range tagItems {
-		tagNames = append(tagNames, item.Tag)
-	}
-
-	mockStorager := &mockStorageObject{}
-	mockStorager.On("List").Return(tagNames, nil)
-	errString := "List Failed"
+	mockStorager := newMockStorager(tagItems)
+	errString := "Obtain Failed"
 	for _, item := range tagItems {
 		var nilItem *TagItem
 		mockStorager.On("Obtain", item.Tag).Return(nilItem, fmt.Errorf(errString))
 	}
+	mockStorager.ReverseCall()
 
 	providerName := "test"
 	p, err := NewProvider(providerName, mockStorager)
 	s.Nil(p)
 	if err.Error() != errString {
 		s.Failf("error string failed", "expect %v, got %v", errString, err)
+	}
+}
+
+func (s *commonProviderTestSuite) TestNextOk() {
+	tagItems := []*TagItem{
+		{
+			Tag:         "1",
+			Max:         10,
+			Min:         1,
+			Description: "1",
+		},
+	}
+	mockStorager := newMockStorager(tagItems)
+
+	providerName := "test"
+	p, err := NewProvider(providerName, mockStorager)
+	s.NoError(err)
+	s.NotNil(p)
+
+	expect, tagName := uint64(1), tagItems[0].Tag
+	r, err := p.Next(&segment.Arguments{
+		Tag: tagName,
+	})
+	s.NoError(err)
+	s.Equal(expect, r.Next)
+	s.Equal(providerName, r.Name)
+	s.Equal(tagName, r.Labels[segment.LabelTag])
+}
+
+func (s *commonProviderTestSuite) TestNextMultiValueOk() {
+	tagItems := []*TagItem{
+		{
+			Tag:         "1",
+			Max:         5,
+			Min:         1,
+			Description: "1",
+		},
+		{
+			Tag:         "2",
+			Max:         4,
+			Min:         2,
+			Description: "2",
+		},
+	}
+	mockStorager := newMockStorager(tagItems)
+
+	providerName := "test"
+	p, err := NewProvider(providerName, mockStorager)
+	s.NoError(err)
+	s.NotNil(p)
+
+	s.Equal(p.Name(), providerName)
+
+	type testCase struct {
+		description string
+		tag         string
+		expects     []uint64
+	}
+	testCases := []testCase{
+		{
+			description: "normal test tag 1",
+			tag:         "1",
+			expects:     []uint64{1, 2, 3, 4, 5, 1, 2, 3, 4, 5, 1},
+		},
+		{
+			description: "normal test tag 2",
+			tag:         "2",
+			expects:     []uint64{2, 3, 4, 2, 3, 4, 2},
+		},
+	}
+	for _, tc := range testCases {
+		for _, expect := range tc.expects {
+			r, err := p.Next(&segment.Arguments{
+				Tag: tc.tag,
+			})
+			s.NoError(err)
+			s.Equal(expect, r.Next, tc.description)
+		}
+	}
+}
+
+func (s *commonProviderTestSuite) TestNextArgNilFailed() {
+	tagItems := []*TagItem{
+		{
+			Tag:         "1",
+			Max:         5,
+			Min:         1,
+			Description: "1",
+		},
+		{
+			Tag:         "2",
+			Max:         4,
+			Min:         2,
+			Description: "2",
+		},
+	}
+	mockStorager := newMockStorager(tagItems)
+
+	providerName := "test"
+	p, err := NewProvider(providerName, mockStorager)
+	s.NoError(err)
+	s.NotNil(p)
+
+	s.Equal(p.Name(), providerName)
+
+	r, err := p.Next(nil)
+	s.Nil(r)
+	s.Error(err)
+}
+
+func (s *commonProviderTestSuite) TestNextObtainFailed() {
+	tagItems := []*TagItem{
+		{
+			Tag:         "1",
+			Max:         5,
+			Min:         1,
+			Description: "1",
+		},
+		{
+			Tag:         "2",
+			Max:         4,
+			Min:         2,
+			Description: "2",
+		},
+	}
+	mockStorager := newMockStorager(tagItems)
+	providerName := "test"
+	p, err := NewProvider(providerName, mockStorager)
+	s.NoError(err)
+	s.NotNil(p)
+
+	errString := "Obtain Failed"
+	for _, item := range tagItems {
+		var nilItem *TagItem
+		mockStorager.On("Obtain", item.Tag).Return(nilItem, fmt.Errorf(errString))
+	}
+	mockStorager.ReverseCall()
+
+	s.Equal(p.Name(), providerName)
+
+	r, err := p.Next(nil)
+	s.Nil(r)
+	s.Error(err)
+}
+
+func (s *commonProviderTestSuite) TestObtainItemOk() {
+	tagItems := []*TagItem{
+		{
+			Tag:         "1",
+			Max:         10,
+			Min:         1,
+			Description: "1",
+		},
+	}
+	mockStorager := newMockStorager(tagItems)
+
+	for _, item := range tagItems {
+		r, err := obtainTagNextItem(mockStorager, item.Tag)
+		s.NoError(err)
+
+		if !reflect.DeepEqual(item, r) {
+			s.Failf("item equal failed", "expect %v, got %v", item, r)
+		}
+		if item == r {
+			s.Failf("item pointer failed", "should not equal, expect[%p], got[%p]", item, r)
+		}
+	}
+}
+
+func (s *commonProviderTestSuite) TestObtainItemFailed() {
+	tagItems := []*TagItem{
+		{
+			Tag:         "1",
+			Max:         10,
+			Min:         11,
+			Description: "1",
+		},
+	}
+	mockStorager := newMockStorager(tagItems)
+	errString := "Obtain Failed"
+	for _, item := range tagItems {
+		var tagItem *TagItem
+		mockStorager.On("Obtain", item.Tag).Return(tagItem, fmt.Errorf(errString))
+	}
+	mockStorager.ReverseCall()
+
+	for _, item := range tagItems {
+		r, err := obtainTagNextItem(mockStorager, item.Tag)
+		s.Error(err)
+		s.Nil(r)
+	}
+}
+
+func (s *commonProviderTestSuite) TestObtainItemValueFailed() {
+	tagItems := []*TagItem{
+		{
+			Tag:         "1",
+			Max:         10,
+			Min:         11,
+			Description: "1",
+		},
+	}
+	mockStorager := newMockStorager(tagItems)
+
+	for _, item := range tagItems {
+		r, err := obtainTagNextItem(mockStorager, item.Tag)
+		s.Error(err)
+		if !ierror.Is(err, ierror.EcodeSegmentRangeFailed) {
+			s.Failf("error code failed", "expect[%v], got[%v]", ierror.EcodeSegmentRangeFailed, err)
+		}
+		s.Nil(r)
 	}
 }
 
