@@ -20,6 +20,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/lsytj0413/fyllo/pkg/common"
 	ierror "github.com/lsytj0413/fyllo/pkg/error"
 	"github.com/lsytj0413/fyllo/pkg/random"
 	"github.com/lsytj0413/fyllo/pkg/segment"
@@ -37,11 +38,11 @@ func (s *versionService) Install(engine *gin.Engine) error {
 }
 
 func (s *versionService) Version(c *gin.Context) (interface{}, error) {
-	return map[string]string{
-		"Version":     version.Version,
-		"Commit":      version.Commit,
-		"Name":        "fyllo",
-		"Description": "A distributed, unique ID generation service.",
+	return &common.Version{
+		Name:        "fyllo",
+		Version:     version.Version,
+		Commit:      version.Commit,
+		Description: "A distributed, unique ID generation service.",
 	}, nil
 }
 

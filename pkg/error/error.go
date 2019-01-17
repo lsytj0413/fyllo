@@ -35,6 +35,8 @@ const (
 	EcodeTimestampRewind = 40001002
 	// EcodeSegmentRangeFailed errors for segment item failed, for example the min value bigger than max value
 	EcodeSegmentRangeFailed = 40002001
+	// EcodeSegmentQueryFailed errors for segment storage failed
+	EcodeSegmentQueryFailed = 40002002
 
 	// EcodeInternalError errors for internal server error
 	EcodeInternalError = 99999998
@@ -50,6 +52,7 @@ var errorsMessage = map[int]string{
 	EcodeSequenceOutOfRange:   "Sequence Out Of Range",
 	EcodeTimestampRewind:      "Current Timestamp Less Than Last",
 	EcodeSegmentRangeFailed:   "Current Min Value Bigger Than Max Value",
+	EcodeSegmentQueryFailed:   "Query Storage Error",
 	EcodeInternalError:        "Internal Server Error",
 }
 

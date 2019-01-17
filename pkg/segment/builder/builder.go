@@ -70,16 +70,24 @@ type builder struct {
 func (b *builder) Build() (segment.Provider, error) {
 	switch b.options.ProviderName {
 	case mysql.ProviderName:
-		return mysql.NewProvider(&mysql.Options{
-			Args: b.options.ProviderArgs,
-		})
+		return createMysqlProvider(b.options)
 	case mem.ProviderName:
-		return mem.NewProvider(&mem.Options{
-			Args: b.options.ProviderArgs,
-		})
+		return createMemProvider(b.options)
 	}
 
 	return nil, ierror.NewError(ierror.EcodeProviderNotImplement, fmt.Sprintf("Invalid Segment ProviderName[%s], Avaliable: %s", b.options.ProviderName, AvailableProvidersDescription))
+}
+
+var createMysqlProvider = func(option *Options) (segment.Provider, error) {
+	return mysql.NewProvider(&mysql.Options{
+		Args: option.ProviderArgs,
+	})
+}
+
+var createMemProvider = func(option *Options) (segment.Provider, error) {
+	return mem.NewProvider(&mem.Options{
+		Args: option.ProviderArgs,
+	})
 }
 
 func init() {

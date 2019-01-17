@@ -19,6 +19,8 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
+	"github.com/lsytj0413/fyllo/pkg/segment"
+	"github.com/lsytj0413/fyllo/pkg/segment/internal"
 	"github.com/lsytj0413/fyllo/pkg/segment/mem"
 	"github.com/lsytj0413/fyllo/pkg/segment/mysql"
 )
@@ -37,7 +39,6 @@ func (s *builderTestSuite) TestNewBuilderOk() {
 		s.NotNil(b)
 	}
 }
-
 func (s *builderTestSuite) TestNewBuilderFailed() {
 	names := []string{"test"}
 	for _, name := range names {
@@ -60,6 +61,13 @@ func (s *builderTestSuite) TestBuildOk() {
 			ProviderArgs: "",
 		},
 	}
+	oldCreateMysqlProvider, oldCreateMemProvider := createMysqlProvider, createMemProvider
+	createMysqlProvider = func(*Options) (segment.Provider, error) {
+		return &internal.CommonProvider{}, nil
+	}
+	createMemProvider = func(*Options) (segment.Provider, error) {
+		return &internal.CommonProvider{}, nil
+	}
 	for _, option := range options {
 		b, err := NewBuilder(option)
 		s.NoError(err)
@@ -68,6 +76,7 @@ func (s *builderTestSuite) TestBuildOk() {
 		s.NoError(err)
 		s.NotNil(p)
 	}
+	createMysqlProvider, createMemProvider = oldCreateMysqlProvider, oldCreateMemProvider
 }
 
 func (s *builderTestSuite) TestBuildFailed() {

@@ -24,6 +24,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/lsytj0413/fyllo/pkg/common"
 	"github.com/lsytj0413/fyllo/pkg/server"
 )
 
@@ -64,16 +65,10 @@ func (s *apiTestSuite) TestVersionOk() {
 	body, err := ioutil.ReadAll(w.Body)
 	s.NoError(err)
 
-	resp := make(map[string]string)
+	resp := &common.Version{}
 	err = json.Unmarshal(body, &resp)
 	s.NoError(err)
-
-	keys := []string{"Name", "Commit", "Version", "Description"}
-	for _, key := range keys {
-		if _, ok := resp[key]; !ok {
-			s.Failf("HttpBofy Failed", "expect key[%s] exists, but not found", key)
-		}
-	}
+	s.Equal("fyllo", resp.Name)
 }
 
 func TestApiTestSuite(t *testing.T) {

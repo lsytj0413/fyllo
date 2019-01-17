@@ -20,3 +20,11 @@ type ProviderResult struct {
 	Next   uint64            `json:"next"`
 	Labels map[string]string `json:"labels,omitempty"`
 }
+
+// Version for fyllo version profile
+type Version struct {
+	Name        string `json:"name"`
+	Version     string `json:"version"`
+	Commit      string `json:"commit"`
+	Description string `json:"description"`
+}
