@@ -31,14 +31,26 @@ const (
 	// ProviderName for the mysql segment provider
 	ProviderName = "mysql"
 
-	// table
-	// Field      	Type          	Null  	Key    	Default    			Extra
-	// tag        	varchar(128)	No		PRI
-	// max_id	  	bigint			No		  		0
-	// step       	bigint			No		        100
-	// desc		  	varchar(256)  	No		  		""
-	// create_time  timestamp		No				CURRENT_TIMESTAMP
-	// udpate_time	timestamp		No				CURRENT_TIMESTAMP	on update CURRENT_TIMESTAMP
+	// +-------------+--------------+------+-----+-------------------+-----------------------------+
+	// | Field       | Type         | Null | Key | Default           | Extra                       |
+	// +-------------+--------------+------+-----+-------------------+-----------------------------+
+	// | tag         | varchar(128) | NO   | PRI | NULL              |                             |
+	// | max_id      | bigint(20)   | NO   |     | 0                 |                             |
+	// | step        | bigint(20)   | NO   |     | 100               |                             |
+	// | description | varchar(256) | NO   |     |                   |                             |
+	// | create_time | timestamp    | NO   |     | CURRENT_TIMESTAMP |                             |
+	// | update_time | timestamp    | NO   |     | CURRENT_TIMESTAMP | on update CURRENT_TIMESTAMP |
+	// +-------------+--------------+------+-----+-------------------+-----------------------------+
+
+	// CREATE TABLE `fyllo_segment` (
+	// 	`tag` varchar(128) NOT NULL,
+	// 	`max_id` bigint(20) NOT NULL DEFAULT '0',
+	// 	`step` bigint(20) NOT NULL DEFAULT '100',
+	// 	`description` varchar(256) NOT NULL DEFAULT '',
+	// 	`create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	// 	`update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+	// 	PRIMARY KEY (`tag`)
+	//   ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 	tableName = "fyllo_segment"
 )
 
@@ -52,7 +64,7 @@ type mysqlStorage struct {
 }
 
 func (m *mysqlStorage) List() ([]string, error) {
-	rows, err := m.db.Query("select tag from ?", tableName)
+	rows, err := m.db.Query("select tag from fyllo_segment")
 	if err != nil {
 		return nil, ierror.NewError(ierror.EcodeSegmentQueryFailed, fmt.Sprintf("Query failed, %v", err))
 	}
@@ -87,7 +99,7 @@ func (m *mysqlStorage) Obtain(tag string) (*internal.TagItem, error) {
 			desc  string
 		)
 		var rs sql.Result
-		rs, err = tx.Exec("update ? set max_id=max_id+step where tag = ?", tableName, tag)
+		rs, err = tx.Exec("update fyllo_segment set max_id=max_id+step where tag = ?", tag)
 		if err != nil {
 			return nil, err
 		}
@@ -100,7 +112,7 @@ func (m *mysqlStorage) Obtain(tag string) (*internal.TagItem, error) {
 			return nil, fmt.Errorf("no row")
 		}
 
-		err = tx.QueryRow("select max_id, step, desc from ? where tag = ?", tableName, tag).Scan(&maxID, &step, &desc)
+		err = tx.QueryRow("select max_id, step, description from fyllo_segment where tag = ?", tag).Scan(&maxID, &step, &desc)
 		if err != nil {
 			if err == sql.ErrNoRows {
 				return nil, err
