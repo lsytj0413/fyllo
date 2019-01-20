@@ -46,7 +46,7 @@ func (s *uuidProviderTestSuite) TestNoDuplicate() {
 	for i := 0; i < n; i++ {
 		r, _ := p.Next(nil)
 		if store[r.Next] {
-			s.Failf("duplicate next", "value %v", r.Next)
+			s.FailNowf("duplicate next", "value %v", r.Next)
 		}
 		store[r.Next] = true
 	}

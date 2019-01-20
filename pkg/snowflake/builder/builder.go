@@ -19,12 +19,14 @@ import (
 	"strings"
 
 	"github.com/lsytj0413/fyllo/pkg/snowflake"
+	"github.com/lsytj0413/fyllo/pkg/snowflake/etcd"
 	"github.com/lsytj0413/fyllo/pkg/snowflake/rock"
 )
 
 // AvailableProviders supported by the snowflake provider builder.
 var AvailableProviders = []string{
 	rock.ProviderName,
+	etcd.ProviderName,
 }
 
 // AvailableProvidersDescription is string readable description for providers list
@@ -68,6 +70,10 @@ func (b *builder) Build() (snowflake.Provider, error) {
 	switch b.options.ProviderName {
 	case rock.ProviderName:
 		return rock.NewProvider(&rock.Options{
+			Args: b.options.ProviderArgs,
+		})
+	case etcd.ProviderName:
+		return etcd.NewProvider(&etcd.Options{
 			Args: b.options.ProviderArgs,
 		})
 	}

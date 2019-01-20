@@ -59,7 +59,7 @@ func (s *apiTestSuite) TestVersionOk() {
 	r.ServeHTTP(w, req)
 
 	if w.Code != http.StatusOK {
-		s.Failf("HttpStatus Failed", "expect[%d], got[%d]", http.StatusOK, w.Code)
+		s.FailNowf("HttpStatus Failed", "expect[%d], got[%d]", http.StatusOK, w.Code)
 	}
 
 	body, err := ioutil.ReadAll(w.Body)

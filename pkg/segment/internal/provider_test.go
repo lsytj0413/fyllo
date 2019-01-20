@@ -57,7 +57,7 @@ func (s *commonProviderTestSuite) TestNewProviderOk() {
 	for _, item := range tagItems {
 		v := p.tags[item.Tag]
 		if !reflect.DeepEqual(item, v) {
-			s.Failf("item equal failed", "expect %v, got %v", item, v)
+			s.FailNowf("item equal failed", "expect %v, got %v", item, v)
 		}
 	}
 }
@@ -71,7 +71,7 @@ func (s *commonProviderTestSuite) TestNewProviderListFailed() {
 	p, err := NewProvider(providerName, mockStorager)
 	s.Nil(p)
 	if err.Error() != errString {
-		s.Failf("error string failed", "expect %v, got %v", errString, err)
+		s.FailNowf("error string failed", "expect %v, got %v", errString, err)
 	}
 }
 
@@ -96,7 +96,7 @@ func (s *commonProviderTestSuite) TestNewProviderObtainFailed() {
 	p, err := NewProvider(providerName, mockStorager)
 	s.Nil(p)
 	if err.Error() != errString {
-		s.Failf("error string failed", "expect %v, got %v", errString, err)
+		s.FailNowf("error string failed", "expect %v, got %v", errString, err)
 	}
 }
 
@@ -258,10 +258,10 @@ func (s *commonProviderTestSuite) TestObtainItemOk() {
 		s.NoError(err)
 
 		if !reflect.DeepEqual(item, r) {
-			s.Failf("item equal failed", "expect %v, got %v", item, r)
+			s.FailNowf("item equal failed", "expect %v, got %v", item, r)
 		}
 		if item == r {
-			s.Failf("item pointer failed", "should not equal, expect[%p], got[%p]", item, r)
+			s.FailNowf("item pointer failed", "should not equal, expect[%p], got[%p]", item, r)
 		}
 	}
 }
