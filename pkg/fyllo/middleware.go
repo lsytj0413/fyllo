@@ -16,24 +16,16 @@ package fyllo
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/lsytj0413/ena/cerror"
 	"github.com/lsytj0413/ena/logger"
 
-	ierror "github.com/lsytj0413/fyllo/pkg/error"
+	"github.com/lsytj0413/fyllo/pkg/errors"
 )
 
 func errorMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if nerr := recover(); nerr != nil {
-				if err, ok := nerr.(error); ok {
-					var cerr *cerror.Error
-					var ok bool
-					if cerr, ok = err.(*cerror.Error); !ok {
-						cerr = ierror.NewError(ierror.EcodeUnknown, err.Error())
-					}
-					cerr.WriteTo(c.Writer)
-				}
+				errors.WriteTo(c.Writer, nerr.(error))
 			}
 		}()
 

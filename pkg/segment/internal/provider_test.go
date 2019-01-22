@@ -21,7 +21,7 @@ import (
 
 	"github.com/stretchr/testify/suite"
 
-	ierror "github.com/lsytj0413/fyllo/pkg/error"
+	"github.com/lsytj0413/fyllo/pkg/errors"
 	"github.com/lsytj0413/fyllo/pkg/segment"
 )
 
@@ -304,8 +304,8 @@ func (s *commonProviderTestSuite) TestObtainItemValueFailed() {
 	for _, item := range tagItems {
 		r, err := obtainTagNextItem(mockStorager, item.Tag)
 		s.Error(err)
-		if !ierror.Is(err, ierror.EcodeSegmentRangeFailed) {
-			s.Failf("error code failed", "expect[%v], got[%v]", ierror.EcodeSegmentRangeFailed, err)
+		if !errors.Is(err, errors.EcodeSegmentRangeFailed) {
+			s.Failf("error code failed", "expect[%v], got[%v]", errors.EcodeSegmentRangeFailed, err)
 		}
 		s.Nil(r)
 	}

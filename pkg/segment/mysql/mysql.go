@@ -20,7 +20,7 @@ import (
 
 	mysqlDriver "github.com/go-sql-driver/mysql"
 
-	ierror "github.com/lsytj0413/fyllo/pkg/error"
+	"github.com/lsytj0413/fyllo/pkg/errors"
 	"github.com/lsytj0413/fyllo/pkg/segment"
 	"github.com/lsytj0413/fyllo/pkg/segment/internal"
 )
@@ -66,10 +66,10 @@ type mysqlStorage struct {
 func (m *mysqlStorage) List() ([]string, error) {
 	rows, err := m.db.Query("select tag from fyllo_segment")
 	if err != nil {
-		return nil, ierror.NewError(ierror.EcodeSegmentQueryFailed, fmt.Sprintf("Query failed, %v", err))
+		return nil, errors.NewError(errors.EcodeSegmentQueryFailed, fmt.Sprintf("Query failed, %v", err))
 	}
 	if rows == nil {
-		return nil, ierror.NewError(ierror.EcodeSegmentQueryFailed, "Query failed, return nil Rows")
+		return nil, errors.NewError(errors.EcodeSegmentQueryFailed, "Query failed, return nil Rows")
 	}
 	defer rows.Close()
 
@@ -78,7 +78,7 @@ func (m *mysqlStorage) List() ([]string, error) {
 		var name string
 		err := rows.Scan(&name)
 		if err != nil {
-			return nil, ierror.NewError(ierror.EcodeSegmentQueryFailed, fmt.Sprintf("Query failed, %v", err))
+			return nil, errors.NewError(errors.EcodeSegmentQueryFailed, fmt.Sprintf("Query failed, %v", err))
 		}
 
 		r = append(r, name)
@@ -89,7 +89,7 @@ func (m *mysqlStorage) List() ([]string, error) {
 func (m *mysqlStorage) Obtain(tag string) (*internal.TagItem, error) {
 	tx, err := m.db.Begin()
 	if err != nil {
-		return nil, ierror.NewError(ierror.EcodeSegmentQueryFailed, fmt.Sprintf("Query failed, %v", err))
+		return nil, errors.NewError(errors.EcodeSegmentQueryFailed, fmt.Sprintf("Query failed, %v", err))
 	}
 	defer tx.Rollback()
 	item, err := func() (*internal.TagItem, error) {
@@ -139,12 +139,12 @@ func (m *mysqlStorage) Obtain(tag string) (*internal.TagItem, error) {
 // NewProvider return mysql segment provider implement
 func NewProvider(options *Options) (segment.Provider, error) {
 	if 0 == len(options.Args) {
-		return nil, ierror.NewError(ierror.EcodeInitFailed, "segment provider[mysql] arguments should not be empty")
+		return nil, errors.NewError(errors.EcodeInitFailed, "segment provider[mysql] arguments should not be empty")
 	}
 
 	db, err := sql.Open("mysql", options.Args)
 	if err != nil {
-		return nil, ierror.NewError(ierror.EcodeInitFailed, fmt.Sprintf("open %s failed, %v", options.Args, err))
+		return nil, errors.NewError(errors.EcodeInitFailed, fmt.Sprintf("open %s failed, %v", options.Args, err))
 	}
 
 	return internal.NewProvider(ProviderName, &mysqlStorage{

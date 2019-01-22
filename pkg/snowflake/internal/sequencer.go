@@ -19,9 +19,8 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/lsytj0413/fyllo/pkg/errors"
 	"github.com/lsytj0413/fyllo/pkg/snowflake"
-
-	ierror "github.com/lsytj0413/fyllo/pkg/error"
 )
 
 // Sequencer for produce snowflake sequence number
@@ -64,7 +63,7 @@ func (s *sequencer) checkTick() error {
 			s.now = 0
 		}
 	default:
-		return ierror.NewError(ierror.EcodeTimestampRewind, fmt.Sprintf("current timestamp[%d] less than last timestamp[%d]", n, s.lastTick))
+		return errors.NewError(errors.EcodeTimestampRewind, fmt.Sprintf("current timestamp[%d] less than last timestamp[%d]", n, s.lastTick))
 	}
 	return nil
 }

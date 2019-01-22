@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	ierror "github.com/lsytj0413/fyllo/pkg/error"
+	"github.com/lsytj0413/fyllo/pkg/errors"
 	"github.com/lsytj0413/fyllo/pkg/segment"
 	"github.com/lsytj0413/fyllo/pkg/segment/mem"
 	"github.com/lsytj0413/fyllo/pkg/segment/mysql"
@@ -55,7 +55,7 @@ func NewBuilder(options *Options) (Builder, error) {
 		}
 	}
 	if !found {
-		return nil, ierror.NewError(ierror.EcodeProviderNotImplement, fmt.Sprintf("Invalid Segment ProviderName[%s], Avaliable: %s", options.ProviderName, AvailableProvidersDescription))
+		return nil, errors.NewError(errors.EcodeProviderNotImplement, fmt.Sprintf("Invalid Segment ProviderName[%s], Avaliable: %s", options.ProviderName, AvailableProvidersDescription))
 	}
 
 	return &builder{
@@ -75,7 +75,7 @@ func (b *builder) Build() (segment.Provider, error) {
 		return createMemProvider(b.options)
 	}
 
-	return nil, ierror.NewError(ierror.EcodeProviderNotImplement, fmt.Sprintf("Invalid Segment ProviderName[%s], Avaliable: %s", b.options.ProviderName, AvailableProvidersDescription))
+	return nil, errors.NewError(errors.EcodeProviderNotImplement, fmt.Sprintf("Invalid Segment ProviderName[%s], Avaliable: %s", b.options.ProviderName, AvailableProvidersDescription))
 }
 
 var createMysqlProvider = func(option *Options) (segment.Provider, error) {

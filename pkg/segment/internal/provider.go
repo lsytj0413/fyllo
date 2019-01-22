@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"sync"
 
-	ierror "github.com/lsytj0413/fyllo/pkg/error"
+	"github.com/lsytj0413/fyllo/pkg/errors"
 	"github.com/lsytj0413/fyllo/pkg/segment"
 )
 
@@ -78,7 +78,7 @@ func obtainTagNextItem(storage Storager, tag string) (*TagItem, error) {
 	}
 
 	if item.Min > item.Max {
-		return nil, ierror.NewError(ierror.EcodeSegmentRangeFailed, fmt.Sprintf("min[%d] bigger than max[%d], tag[%v]", item.Min, item.Max, item.Tag))
+		return nil, errors.NewError(errors.EcodeSegmentRangeFailed, fmt.Sprintf("min[%d] bigger than max[%d], tag[%v]", item.Min, item.Max, item.Tag))
 	}
 
 	// copy it, avoid reuse in storager
@@ -101,7 +101,7 @@ func (p *CommonProvider) Next(arg *segment.Arguments) (*segment.Result, error) {
 	defer p.mutex.Unlock()
 
 	if arg == nil {
-		return nil, ierror.NewError(ierror.EcodeInternalError, "Argument Values is Nil")
+		return nil, errors.NewError(errors.EcodeInternalError, "Argument Values is Nil")
 	}
 
 	item, ok := p.tags[arg.Tag]

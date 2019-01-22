@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package error describes errors in project.
-package error
+// Package errors describes errors in project.
+package errors
 
 import (
 	"net/http"
@@ -70,6 +70,18 @@ var IsError = cerror.IsError
 
 // Is for cerror.Is
 var Is = cerror.Is
+
+// WriteTo write error message to http response
+func WriteTo(w cerror.Writer, err error) error {
+	var cerr *cerror.Error
+	if IsError(err) {
+		cerr = err.(*cerror.Error)
+	} else {
+		cerr = NewError(EcodeUnknown, err.Error())
+	}
+
+	return cerr.WriteTo(w)
+}
 
 func init() {
 	cerror.SetErrorsMessage(errorsMessage)

@@ -19,6 +19,8 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/lsytj0413/fyllo/pkg/common"
+	"github.com/lsytj0413/fyllo/pkg/errors"
 	"github.com/lsytj0413/fyllo/pkg/segment"
 	"github.com/lsytj0413/fyllo/pkg/segment/internal"
 )
@@ -53,7 +55,7 @@ func (m *memStorage) List() ([]string, error) {
 func (m *memStorage) Obtain(tag string) (*internal.TagItem, error) {
 	rowItem, ok := m.tags[tag]
 	if !ok {
-		return nil, fmt.Errorf("not found")
+		return nil, errors.NewError(errors.EcodeSegmentQueryFailed, fmt.Sprintf("%s doesn't exists", tag))
 	}
 
 	r := &internal.TagItem{
@@ -85,7 +87,7 @@ func NewProvider(options *Options) (segment.Provider, error) {
 
 func parseProviderArgs(args string) (map[string]*memRow, error) {
 	if 0 == len(args) {
-		return nil, fmt.Errorf("empty args")
+		return nil, errors.NewError(errors.EcodeInitFailed, "segment provider[mem] argument should not be empty")
 	}
 
 	r := make(map[string]*memRow)
@@ -96,7 +98,7 @@ func parseProviderArgs(args string) (map[string]*memRow, error) {
 			return nil, err
 		}
 		if _, ok := r[row.Tag]; ok {
-			return nil, fmt.Errorf("duplicate %s tag name", row.Tag)
+			return nil, errors.NewError(errors.EcodeInitFailed, fmt.Sprintf("segment provider[mem] duplicate field %v", row.Tag))
 		}
 		r[row.Tag] = row
 	}
@@ -104,53 +106,42 @@ func parseProviderArgs(args string) (map[string]*memRow, error) {
 }
 
 func parseProviderArgRow(arg string) (*memRow, error) {
-	fields := strings.Split(arg, ",")
-
-	valueMap := make(map[string]string)
-	for _, field := range fields {
-		arr := strings.Split(field, "=")
-		if len(arr) != 2 {
-			return nil, fmt.Errorf("wrong field %s", field)
-		}
-
-		key, value := strings.ToLower(arr[0]), arr[1]
-		if _, ok := valueMap[key]; ok {
-			return nil, fmt.Errorf("duplicate key %s", key)
-		}
-		valueMap[key] = value
+	kvs, err := common.SplitKeyValueArrayString(arg)
+	if err != nil {
+		return nil, errors.NewError(errors.EcodeInitFailed, fmt.Sprintf("segment provider[mem] argument parse failed, %v", err))
 	}
 
 	mustFields := []string{"tag", "step"}
 	for _, fieldName := range mustFields {
-		if _, ok := valueMap[fieldName]; !ok {
-			return nil, fmt.Errorf("%s key loss", fieldName)
+		if _, ok := kvs[fieldName]; !ok {
+			return nil, errors.NewError(errors.EcodeInitFailed, fmt.Sprintf("segment provider[mem] argument parse failed, %s field not exists", fieldName))
 		}
 	}
 
 	row := &memRow{}
-	for key, value := range valueMap {
+	for key, value := range kvs {
 		switch key {
 		case "tag":
 			row.Tag = value
 		case "max":
 			v, err := strconv.ParseUint(value, 10, 64)
 			if err != nil {
-				return nil, fmt.Errorf("%s key %s value parse failed, %v", key, value, err)
+				return nil, errors.NewError(errors.EcodeInitFailed, fmt.Sprintf("segment provider[mem] argument parse failed, key[%v] value[%s] %v", key, value, err))
 			}
 			row.Max = v
 		case "step":
 			v, err := strconv.ParseUint(value, 10, 64)
 			if err != nil {
-				return nil, fmt.Errorf("%s key %s value parse failed, %v", key, value, err)
+				return nil, errors.NewError(errors.EcodeInitFailed, fmt.Sprintf("segment provider[mem] argument parse failed, key[%v] value[%s] %v", key, value, err))
 			}
 			if v < 1 {
-				return nil, fmt.Errorf("%s key %s value should bigger than 0", key, value)
+				return nil, errors.NewError(errors.EcodeInitFailed, fmt.Sprintf("segment provider[mem] argument parse failed, key[%v] value[%s] should bigger than 0", key, value))
 			}
 			row.Step = v
 		case "desc":
 			row.Description = value
 		default:
-			return nil, fmt.Errorf("%s key wrong name", key)
+			return nil, errors.NewError(errors.EcodeInitFailed, fmt.Sprintf("segment provider[mem] argument parse failed, key[%v] is invalid", key))
 		}
 	}
 

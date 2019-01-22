@@ -16,10 +16,13 @@
 package etcd
 
 import (
-	"github.com/lsytj0413/fyllo/pkg/snowflake/internal"
+	"fmt"
+
 	"go.etcd.io/etcd/client"
 
+	"github.com/lsytj0413/fyllo/pkg/errors"
 	"github.com/lsytj0413/fyllo/pkg/snowflake"
+	"github.com/lsytj0413/fyllo/pkg/snowflake/internal"
 )
 
 const (
@@ -43,5 +46,13 @@ type Options struct {
 
 // NewProvider return etcd snowflake provider implement
 func NewProvider(options *Options) (snowflake.Provider, error) {
-	return internal.NewProvider(ProviderName, &etcdIdentifier{}), nil
+	config := client.Config{}
+	cli, err := client.New(config)
+	if err != nil {
+		return nil, errors.NewError(errors.EcodeInitFailed, fmt.Sprintf("snowflake provider[etcd] init failed, %v", err))
+	}
+
+	return internal.NewProvider(ProviderName, &etcdIdentifier{
+		client: cli,
+	}), nil
 }

@@ -21,7 +21,7 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"github.com/lsytj0413/fyllo/pkg/common"
-	ierror "github.com/lsytj0413/fyllo/pkg/error"
+	"github.com/lsytj0413/fyllo/pkg/errors"
 	"github.com/lsytj0413/fyllo/pkg/random"
 	"github.com/lsytj0413/fyllo/pkg/segment"
 	"github.com/lsytj0413/fyllo/pkg/snowflake"
@@ -58,12 +58,12 @@ func (s *snowflakeService) Install(engine *gin.Engine) error {
 func (s *snowflakeService) Next(c *gin.Context) (interface{}, error) {
 	tag := c.Query("tag")
 	if tag == "" {
-		return nil, ierror.NewError(ierror.EcodeRequestParam, "param tag is required")
+		return nil, errors.NewError(errors.EcodeRequestParam, "param tag is required")
 	}
 
 	tagID, err := strconv.ParseUint(tag, 10, 64)
 	if err != nil {
-		return nil, ierror.NewError(ierror.EcodeRequestParam, fmt.Sprintf("param tag[%s] convert to uint64 failed, %v", tag, err))
+		return nil, errors.NewError(errors.EcodeRequestParam, fmt.Sprintf("param tag[%s] convert to uint64 failed, %v", tag, err))
 	}
 
 	n, err := s.provider.Next(&snowflake.Arguments{
@@ -104,7 +104,7 @@ func (s *segmentService) Install(engine *gin.Engine) error {
 func (s *segmentService) Next(c *gin.Context) (interface{}, error) {
 	tag := c.Query("tag")
 	if tag == "" {
-		return nil, ierror.NewError(ierror.EcodeRequestParam, "param tag is required")
+		return nil, errors.NewError(errors.EcodeRequestParam, "param tag is required")
 	}
 
 	n, err := s.provider.Next(&segment.Arguments{

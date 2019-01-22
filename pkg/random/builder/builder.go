@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	ierror "github.com/lsytj0413/fyllo/pkg/error"
+	"github.com/lsytj0413/fyllo/pkg/errors"
 	"github.com/lsytj0413/fyllo/pkg/random"
 	"github.com/lsytj0413/fyllo/pkg/random/uuid"
 )
@@ -53,7 +53,7 @@ func NewBuilder(options *Options) (Builder, error) {
 		}
 	}
 	if !found {
-		return nil, ierror.NewError(ierror.EcodeProviderNotImplement, fmt.Sprintf("Invalid Random ProviderName[%s], Avaliable: %s", options.ProviderName, AvailableProvidersDescription))
+		return nil, errors.NewError(errors.EcodeProviderNotImplement, fmt.Sprintf("Invalid Random ProviderName[%s], Avaliable: %s", options.ProviderName, AvailableProvidersDescription))
 	}
 
 	return &builder{
@@ -73,7 +73,7 @@ func (b *builder) Build() (random.Provider, error) {
 		})
 	}
 
-	return nil, ierror.NewError(ierror.EcodeProviderNotImplement, fmt.Sprintf("Invalid Random ProviderName[%s], Avaliable: %s", b.options.ProviderName, AvailableProvidersDescription))
+	return nil, errors.NewError(errors.EcodeProviderNotImplement, fmt.Sprintf("Invalid Random ProviderName[%s], Avaliable: %s", b.options.ProviderName, AvailableProvidersDescription))
 }
 
 func init() {
