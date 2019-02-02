@@ -19,6 +19,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lsytj0413/ena/logger"
 
 	"github.com/lsytj0413/fyllo/pkg/common"
 	"github.com/lsytj0413/fyllo/pkg/errors"
@@ -55,10 +56,12 @@ func (s *snowflakeService) Install(engine *gin.Engine) error {
 	return nil
 }
 
-func (s *snowflakeService) Next(c *gin.Context) (interface{}, error) {
+func (s *snowflakeService) Next(c *gin.Context) (r interface{}, err error) {
 	tag := c.Query("tag")
 	if tag == "" {
-		return nil, errors.NewError(errors.EcodeRequestParam, "param tag is required")
+		err = errors.NewError(errors.EcodeRequestParam, "param tag is required")
+		logger.Errorf("snowflake next api failed, %v", err)
+		return nil, err
 	}
 
 	tagID, err := strconv.ParseUint(tag, 10, 64)

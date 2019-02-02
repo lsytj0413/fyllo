@@ -18,22 +18,26 @@ import (
 	"encoding/json"
 
 	"github.com/gin-gonic/gin"
+	"github.com/lsytj0413/ena/logger"
 )
 
 func wrapperHandler(f func(*gin.Context) (interface{}, error)) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		resp, err := f(c)
 		if err != nil {
+			logger.Errorf("handler failed, %v", err)
 			panic(err)
 		}
 
 		data, err := json.Marshal(resp)
 		if err != nil {
+			logger.Errorf("handler marshal[%v] failed, %v", resp, err)
 			panic(err)
 		}
 
 		_, err = c.Writer.Write(data)
 		if err != nil {
+			logger.Errorf("handler write response[%v] failed, %v", string(data), err)
 			panic(err)
 		}
 	}

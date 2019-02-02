@@ -25,7 +25,9 @@ func errorMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		defer func() {
 			if nerr := recover(); nerr != nil {
-				errors.WriteTo(c.Writer, nerr.(error))
+				err := nerr.(error)
+				logger.Errorf("errorMiddleware catched err: %v", err)
+				errors.WriteTo(c.Writer, err)
 			}
 		}()
 
