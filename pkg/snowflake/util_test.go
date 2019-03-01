@@ -86,7 +86,9 @@ func (s *utilTestSuite) TestMakeSnowflakeID() {
 		},
 	}
 	for _, tc := range testCases {
-		s.Equal(tc.expected, MakeSnowflakeID(tc.timestamp, tc.mid, tc.bid, tc.sequenceNumber), tc.Description)
+		s.Run(tc.Description, func() {
+			s.Equal(tc.expected, MakeSnowflakeID(tc.timestamp, tc.mid, tc.bid, tc.sequenceNumber))
+		})
 	}
 }
 
