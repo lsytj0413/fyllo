@@ -59,7 +59,7 @@ dep: $(GODEP)
 	  	echo "vendor exists, skip dep ensure";    \
 	fi
 $(GODEP):
-	go get -u github.com/golang/dep/cmd/dep
+	go get -u -v github.com/golang/dep/cmd/dep
 	
 test: dep
 #	go test $(PKGS)

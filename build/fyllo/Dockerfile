@@ -15,7 +15,7 @@
 # This file is mult-stage build for fyllo Docker image
 
 # build stage
-FROM alpine:3.7 AS build-env
+FROM alpine:3.9 AS build-env
 ADD . /go/src/github.com/lsytj0413/fyllo
 WORKDIR /go/src/github.com/lsytj0413/fyllo
 ENV GOPATH /go
@@ -30,7 +30,7 @@ RUN export PATH=/go/bin:$PATH \
     && rm -rf /var/cache/apk/*
 
 # image stage
-FROM alpine:3.7
+FROM alpine:3.9
 LABEL MAINTAINER sorenyang@foxmail.com
 
 ENV GIN_MODE release
