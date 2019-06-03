@@ -13,6 +13,7 @@
 # limitations under the License.
 
 # Current version of the project
+# VERSION ?= $(shell git describe --tags --always --dirty)
 VERSION ?= 1.0.0
 GIT_SHA=$(shell git rev-parse --short HEAD)
 TAGS=$(GIT_SHA)
@@ -22,6 +23,17 @@ ROOT := github.com/lsytj0413/fyllo
 
 # Target binaries. You can build multiple binaries for a single project
 TARGETS := fyllo
+DOCKER_TARGETS := $(TARGETS)
+
+# Container registries.
+REGISTRIES ?= lsytj0413
+
+# Container image prefix and suffix added to targets.
+# The final built images are:
+#   $[REGISTRY]/$[IMAGE_PREFIX]$[TARGET]$[IMAGE_SUFFIX]:$[VERSION]
+# $[REGISTRY] is an item from $[REGISTRIES], $[TARGET] is an item from $[TARGETS].
+IMAGE_PREFIX ?= $(strip )
+IMAGE_SUFFIX ?= $(strip )
 
 # A list of all packages
 PKGS := $(shell go list ./... | grep -v /vendor | grep -v /test)
@@ -54,14 +66,14 @@ all: test build
 # TODO: if vendor exists skip ensure?
 dep: $(GODEP)
 	@if [ ! -d ./vendor ]; then                    \
-	  	dep ensure;                               \
-	else                                          \
-	  	echo "vendor exists, skip dep ensure";    \
+	  	dep ensure;                                \
+	else                                           \
+	  	echo "vendor exists, skip dep ensure";     \
 	fi
 $(GODEP):
 	go get -u -v github.com/golang/dep/cmd/dep
 	
-test: dep
+test:
 #	go test $(PKGS)
 	@for pkg in $(PKGS); do             \
 	  go test $${pkg};                  \
@@ -69,7 +81,7 @@ test: dep
 
 build: build-local
 
-build-local: dep
+build-local:
 	@for target in $(TARGETS); do                                     \
 	  go build -i -v -o $(OUTPUT_DIR)/$${target}                      \
 	   -ldflags "-s -w -X $(ROOT)/pkg/version.Version=$(VERSION)      \
@@ -78,12 +90,25 @@ build-local: dep
 	done		
 
 build-docker: 
-	@for target in $(TARGETS); do                                 \
-	  docker build --force-rm -t $${target}:$(VERSION)                       \
-	    -f $(BUILD_DIR)/$${target}/Dockerfile .;                  \
+	@for target in $(DOCKER_TARGETS); do                                 \
+	  for registry in $(REGISTRIES); do                                  \
+	    image=$(IMAGE_PREFIX)$${target}$(IMAGE_SUFFIX);                  \
+		echo $${registry}/$${image}:$(TAGS);                             \
+		docker build -t $${registry}/$${image}:$(TAGS)                   \
+		  -f $(BUILD_DIR)/$${target}/Dockerfile .;                       \
+	  done                                                               \
 	done
 	# docker rmi -f $(shell docker images -q --filter label=stage=intermediate)
 	docker image prune -f
+
+push:
+	@for target in $(DOCKER_TARGETS); do                                 \
+	  for registry in $(REGISTRIES); do                                  \
+	    image=$(IMAGE_PREFIX)$${target}$(IMAGE_SUFFIX);                  \
+		echo $${registry}/$${image}:$(TAGS);                             \
+		docker push $${registry}/$${image}:$(TAGS);                      \
+	  done                                                               \
+	done
 
 lint: $(GOMETALINTER)
 	gometalinter ./... --vendor
