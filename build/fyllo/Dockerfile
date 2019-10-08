@@ -15,28 +15,29 @@
 # This file is mult-stage build for fyllo Docker image
 
 # build stage
-FROM alpine:3.9 AS build-env
-ADD . /go/src/github.com/lsytj0413/fyllo
-WORKDIR /go/src/github.com/lsytj0413/fyllo
-ENV GOPATH /go
-RUN export PATH=/go/bin:$PATH \
-    && sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
-    && apk update \
-    ## install musl-dev for gcc
-    && apk add --no-cache git go musl-dev make \
-    && make build-local \
-    # && go build -o /go/src/fyllo -v github.com/lsytj0413/fyllo/cmd/fyllo \
-    && mv ./bin/fyllo /go/src/fyllo \
-    && rm -rf /var/cache/apk/*
+# FROM alpine:3.10 AS build-env
+# ADD . /go/src/github.com/lsytj0413/fyllo
+# WORKDIR /go/src/github.com/lsytj0413/fyllo
+# ENV GOPATH /go
+# RUN export PATH=/go/bin:$PATH \
+#     && sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
+#     && apk update \
+#     ## install musl-dev for gcc
+#     && apk add --no-cache git go musl-dev make \
+#     && make build-local SHELL="/bin/sh" \
+#     # && go build -o /go/src/fyllo -v github.com/lsytj0413/fyllo/cmd/fyllo \
+#     && mv ./bin/fyllo /go/src/fyllo \
+#     && rm -rf /var/cache/apk/*
 
 # image stage
-FROM alpine:3.9
+FROM alpine:3.10
 LABEL MAINTAINER sorenyang@foxmail.com
 
 ENV GIN_MODE release
 RUN apk add -U tzdata \
     && ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
-COPY --from=build-env /go/src/fyllo /usr/local/bin/fyllo
+# COPY --from=build-env /go/src/fyllo /usr/local/bin/fyllo
+COPY ./bin/fyllo /usr/local/bin/fyllo
 EXPOSE 80
 WORKDIR /usr/local/bin
 CMD ["fyllo"]

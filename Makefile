@@ -12,21 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Current version of the project
-# VERSION ?= $(shell git describe --tags --always --dirty)
-VERSION ?= 1.0.0
-GIT_SHA=$(shell git rev-parse --short HEAD)
-TAGS=$(GIT_SHA)
-
-# This repo's root import path (under GOPATH)
+# This repo's root import path (under GOPATH).
 ROOT := github.com/lsytj0413/fyllo
 
-# Target binaries. You can build multiple binaries for a single project
+# Target binaries. You can build multiple binaries for a single project.
 TARGETS := fyllo
-DOCKER_TARGETS := $(TARGETS)
-
-# Container registries.
-REGISTRIES ?= lsytj0413
 
 # Container image prefix and suffix added to targets.
 # The final built images are:
@@ -35,33 +25,69 @@ REGISTRIES ?= lsytj0413
 IMAGE_PREFIX ?= $(strip )
 IMAGE_SUFFIX ?= $(strip )
 
-# A list of all packages
-PKGS := $(shell go list ./... | grep -v /vendor | grep -v /test)
+# Container registries.
+REGISTRY ?= 
 
-# Project main package location (can be multiple ones)
+# repository prefix for image.
+REGISTRY_PREFIX ?= $(REGISTRY)
+ifneq ($(REGISTRY),)
+REGISTRY_PREFIX := $(REGISTRY_PREFIX)/
+endif
+
+# Container registry for base images.
+BASE_REGISTRY ?= 
+
+# image for build executable file.
+BASE_BUILD_IMAGE ?= golang:1.12.9-alpine3.10
+ifneq ($(BASE_REGISTRY),)
+BASE_BUILD_IMAGE := $(BASE_REGISTRY)/$(BASE_BUILD_IMAGE)
+endif
+
+#
+# These variables should not need tweaking.
+#
+
+# It's necessary to set this because some environments don't link sh -> bash.
+SHELL := /bin/bash
+
+# Project main package location (can be multiple ones).
 CMD_DIR := ./cmd
 
-# Project output directory
+# Project output directory.
 OUTPUT_DIR := ./bin
 
-# Build directory
+# Build direcotory.
 BUILD_DIR := ./build
 
-# Git commit sha
-COMMIT := $(shell git rev-parse --short HEAD)
+# Current version of the project.
+VERSION ?= $(shell git describe --tags --always --dirty)
 
-# Golang standard bin directory
-BIN_DIR := $(firstword $(subst :, ,$(GOPATH)))/bin
-GOMETALINTER := $(BIN_DIR)/gometalinter
-GODEP := $(BIN_DIR)/dep
+# Available cpus for compiling.
+CPUS ?= $(shell sh hack/read_cpus_available.sh)
+
+# Track code version with Docker Label.
+DOCKER_LABELS ?= git-describe="$(shell date -u +v%Y%m%d)-$(shell git describe --tags --always --dirty)"
+
+# Golang standard bin directory.
+GOPATH ?= $(shell go env GOPATH)
+BIN_DIR := $(firstword $(subst :, , $(GOPATH)))/bin
+GOLANGCI_LINT := $(BIN_DIR)/golangci-lint
 
 #
-# all targets
+# Define all targets. At least the following commands are required:
 #
 
-.PHONY: clean lint test build dep
+# All targets.
+.PHONY: lint test build container push
 
-all: test build
+build: build-local
+
+# more info about `GOGC` env: https://github.com/golangci/golangci-lint#memory-usage-of-golangci-lint
+lint: $(GOLANGCI_LINT)
+	@GOGC=5 $(GOLANGCI_LINT) run
+
+$(GOLANGCI_LINT):
+	curl -sfL https://install.goreleaser.com/github.com/golangci/golangci-lint.sh | sh -s -- -b $(BIN_DIR) v1.16.0
 
 # TODO: if vendor exists skip ensure?
 dep: $(GODEP)
@@ -72,49 +98,48 @@ dep: $(GODEP)
 	fi
 $(GODEP):
 	go get -u -v github.com/golang/dep/cmd/dep
-	
-test:
-#	go test $(PKGS)
-	@for pkg in $(PKGS); do             \
-	  go test $${pkg};                  \
-	done
 
-build: build-local
+test:
+	@go test -p $(CPUS) $$(go list ./... | grep -v /vendor | grep -v /test) -coverprofile=coverage.out
+	@go tool cover -func coverage.out | tail -n 1 | awk '{ print "Total coverage: " $$3 }'
 
 build-local:
-	@for target in $(TARGETS); do                                     \
-	  go build -i -v -o $(OUTPUT_DIR)/$${target}                      \
-	   -ldflags "-s -w -X $(ROOT)/pkg/version.Version=$(VERSION)      \
-	            -X $(ROOT)/pkg/version.Commit=$(COMMIT)"              \
-	   $(CMD_DIR)/$${target};                                         \
-	done		
-
-build-docker: 
-	@for target in $(DOCKER_TARGETS); do                                 \
-	  for registry in $(REGISTRIES); do                                  \
-	    image=$(IMAGE_PREFIX)$${target}$(IMAGE_SUFFIX);                  \
-		echo $${registry}/$${image}:$(TAGS);                             \
-		docker build -t $${registry}/$${image}:$(TAGS)                   \
-		  -f $(BUILD_DIR)/$${target}/Dockerfile .;                       \
-	  done                                                               \
-	done
-	# docker rmi -f $(shell docker images -q --filter label=stage=intermediate)
-	docker image prune -f
-
-push:
-	@for target in $(DOCKER_TARGETS); do                                 \
-	  for registry in $(REGISTRIES); do                                  \
-	    image=$(IMAGE_PREFIX)$${target}$(IMAGE_SUFFIX);                  \
-		echo $${registry}/$${image}:$(TAGS);                             \
-		docker push $${registry}/$${image}:$(TAGS);                      \
-	  done                                                               \
+	@for target in $(TARGETS); do                                                      \
+	  go build -i -v -o $(OUTPUT_DIR)/$${target} -p $(CPUS)                            \
+	  -ldflags "-s -w -X $(ROOT)/pkg/version.VERSION=$(VERSION)                        \
+	    -X $(ROOT)/pkg/version.REPOROOT=$(ROOT)"                                       \
+	  $(CMD_DIR)/$${target};                                                           \
 	done
 
-lint: $(GOMETALINTER)
-	gometalinter ./... --vendor
-$(GOMETALINTER):
-	go get -u github.com/alecthomas/gometalinter
-	gometalinter --install &> /dev/null
+build-linux:
+	@for target in $(TARGETS); do                                                      \
+	  docker run --rm                                                                  \
+	    -v $(PWD):/go/src/$(ROOT)                                                      \
+	    -w /go/src/$(ROOT)                                                             \
+	    -e GOOS=linux                                                                  \
+	    -e GOARCH=amd64                                                                \
+	    -e GOPATH=/go                                                                  \
+	    $(BASE_BUILD_IMAGE)                                         \
+	      go build -i -v -o $(OUTPUT_DIR)/$${target} -p $(CPUS)                        \
+	        -ldflags "-s -w -X $(ROOT)/pkg/version.VERSION=$(VERSION)                  \
+	          -X $(ROOT)/pkg/version.REPOROOT=$(ROOT)"                                 \
+	        $(CMD_DIR)/$${target};                                                     \
+	done
 
+container: build-linux
+	@for target in $(TARGETS); do                                                      \
+	  image=$(IMAGE_PREFIX)$${target}$(IMAGE_SUFFIX);                                  \
+	  docker build -t $(REGISTRY)$${image}:$(VERSION)                                 \
+	    --label $(DOCKER_LABELS)                                                       \
+	    -f $(BUILD_DIR)/$${target}/Dockerfile .;                                       \
+	done
+
+push: container
+	@for target in $(TARGETS); do                                                      \
+	  image=$(IMAGE_PREFIX)$${target}$(IMAGE_SUFFIX);                                  \
+	  docker push $(REGISTRY)$${image}:$(VERSION);                                    \
+	done
+
+.PHONY: clean
 clean:
-	-rm -vrf ${OUTPUT_DIR}
+	@-rm -vrf ${OUTPUT_DIR}
